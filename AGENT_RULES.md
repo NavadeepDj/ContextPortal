@@ -479,7 +479,48 @@ A feature is complete only when:
 
 ---
 
-# 27. Golden Rule
+# 28. OpenWiki & Documentation Guidelines
+
+OpenWiki maintains a living, agent-readable evidence index of the codebase in `openwiki/`.
+
+### Source of Truth Hierarchy
+1. **Product Truth & Architecture Constraints**: `PROJECT_SPEC.md`, `AGENT_RULES.md`, `IMPLEMENTATION_PLAN.md`, and `decisions/` ADRs.
+2. **Implementation Truth**: Active source code, schemas, and test suites.
+3. **Living Map**: `openwiki/` generated pages.
+
+If OpenWiki documentation ever conflicts with source code or project specifications, source code and specification documents take precedence.
+
+### Running & Updating OpenWiki
+- To update existing documentation incrementally after making changes, run:
+  ```powershell
+  openwiki --update
+  ```
+- **Do not run `openwiki --init`** on an already initialized repository, as that triggers full re-onboarding. Always use `openwiki --update`.
+
+### Model Providers & Configuration
+OpenWiki supports multiple LLM inference providers. Configure the provider and API key via environment variables:
+- **Gemini / Google AI Studio**:
+  ```powershell
+  $env:OPENWIKI_PROVIDER="gemini"
+  $env:GEMINI_API_KEY="your-api-key"
+  openwiki --update --modelId gemini-2.5-flash
+  ```
+- **OpenAI**:
+  ```powershell
+  $env:OPENWIKI_PROVIDER="openai"
+  $env:OPENAI_API_KEY="your-api-key"
+  openwiki --update
+  ```
+
+### Handling API Rate Limits & Quotas
+- When using free-tier API keys (e.g., Google AI Studio 250,000 TPM limit), generating or updating the wiki across large batches of files may trigger a temporary rate-limit error (`429 Quota Exceeded`).
+- **These are rolling 60-second window rate limits.**
+- **Recovery action**: Wait 30–60 seconds for the window to reset and re-run `openwiki --update`. OpenWiki preserves all completed files and will continue incrementally.
+- Agent and tool API limits are independent of any IDE session quota.
+
+---
+
+# 29. Golden Rule
 
 Never optimize for:
 

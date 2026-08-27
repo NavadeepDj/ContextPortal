@@ -24,3 +24,5 @@ dist/
 out/
 build/
 .pnpm-store/
+
+backend/playwright_profile/

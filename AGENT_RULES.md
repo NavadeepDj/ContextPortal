@@ -98,8 +98,9 @@ Never:
 - expose credentials
 - reuse another user's session
 - expose another user's context
+- **hide automation flags (e.g., spoofing User-Agent, disabling `AutomationControlled`, hiding `navigator.webdriver`)**
 
-If a requested behavior requires bypassing a security mechanism, stop and explain the limitation.
+If a requested behavior requires bypassing a security mechanism or making the browser "stealthy" to evade detection, stop and explicitly reject it. ContextPortal operates transparently within legitimate authorization (see `decisions/ADR-003-transparent-browser-automation.md`).
 
 ---
 

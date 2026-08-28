@@ -26,10 +26,18 @@ async def fetch_context(url: str) -> str:
         
     # Delegate entirely to the retrieval orchestrator
     try:
-        content = await get_context(url)
-        if not content:
+        result = await get_context(url)
+        if not result:
             return "Error: Could not retrieve content from the URL. The page might be empty, heavily obfuscated, or the auth session may have expired."
-        return content
+            
+        formatted_response = (
+            f"# {result.title or 'Untitled Document'}\n"
+            f"**Source URL**: {result.url}\n"
+            f"**Retrieval Method**: {result.retrieval_method} (Authenticated: {result.authenticated})\n"
+            f"---\n\n"
+            f"{result.content}"
+        )
+        return formatted_response
     except Exception as e:
         return f"Error retrieving context: {str(e)}"
 

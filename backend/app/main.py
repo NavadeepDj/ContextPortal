@@ -24,7 +24,9 @@ async def fetch_context(url: HttpUrl):
     and returns clean Markdown.
     """
     try:
-        markdown_content = await get_context(str(url))
-        return markdown_content
+        result = await get_context(str(url))
+        if not result:
+            raise HTTPException(status_code=404, detail="Content could not be retrieved")
+        return result.content
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,3 +1,6 @@
+> [!CAUTION]
+> **SUPERSEDED**: This document was written before the product reset. The authoritative product definition is now [`docs/PRODUCT_THESIS.md`](docs/PRODUCT_THESIS.md). Sections below that conflict with the thesis (e.g., PostgreSQL as a requirement, token systems for MVP) should be ignored. This file is kept for historical reference only.
+
 # ContextPortal — Product Specification
 
 ## 1. Product Identity

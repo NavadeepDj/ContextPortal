@@ -4,17 +4,38 @@ This document explains the purpose and relationship between the different agent 
 
 ---
 
-## 1. File Responsibilities
+## 1. Source of Truth Hierarchy
+
+1. **Product Thesis**: [`docs/PRODUCT_THESIS.md`](../docs/PRODUCT_THESIS.md) — The authoritative product definition. Read this first.
+2. **Engineering Rules**: [`AGENT_RULES.md`](../AGENT_RULES.md) — Security boundaries and coding standards.
+3. **Implementation Plan**: [`IMPLEMENTATION_PLAN.md`](../IMPLEMENTATION_PLAN.md) — Current phase and next steps.
+4. **Architecture Decisions**: [`decisions/`](../decisions/) — ADRs for key architectural choices.
+5. **Source Code & Tests**: Always authoritative over documentation.
+6. **OpenWiki**: [`openwiki/`](../openwiki/quickstart.md) — Auto-generated codebase index.
+
+> **Note:** `PROJECT_SPEC.md` was written before the product reset and is superseded by `PRODUCT_THESIS.md`. It is kept for historical reference only.
+
+---
+
+## 2. File Responsibilities
 
 | File | Purpose | Loaded By |
 |---|---|---|
+| **`docs/PRODUCT_THESIS.md`** | Core product definition: ContextPortal is an authenticated fetch layer, not a browser automation app | Read by agents and humans before any implementation |
 | **`AGENT_RULES.md`** | Deep security rules, coding standards, ephemeral proxy guidelines | Read by agents for implementation guidance |
 | **`AGENTS.md`** | High-level repository instructions & OpenWiki pointer | Auto-loaded by Antigravity / agent runtimes |
 | **`CLAUDE.md`** | Compatibility redirect pointing to `AGENTS.md` | Auto-loaded if using Claude Code CLI |
 
 ---
 
-## 2. Detailed Breakdown
+## 3. Detailed Breakdown
+
+### `docs/PRODUCT_THESIS.md` — The Product Reset Directive
+* Defines ContextPortal as **"The authenticated fetch layer for AI agents."**
+* Establishes the core abstraction: Agent provides a URL → ContextPortal handles retrieval → Agent receives clean Markdown.
+* Explicitly states what ContextPortal is NOT (browser automation product, RAG system, data warehouse).
+* Defines the phased development strategy (A through F).
+* Must be read before implementing any feature.
 
 ### `AGENT_RULES.md` — The Security & Engineering Contract
 * Comprehensive 29-rule engineering handbook written specifically for ContextPortal.

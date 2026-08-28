@@ -1,50 +1,62 @@
 # ContextPortal
 
-Context behind the login? Just send the link.
+> The authenticated fetch layer for AI agents.
 
-ContextPortal is an authenticated context proxy that securely turns authenticated web pages, private APIs, and enterprise data into agent-ready context.
+Give an agent a URL. If it's public, fetch it normally. If it's protected, use the user's legitimate authorized session. Return clean, agent-readable context.
 
-## Development Setup
+## Quick Start (MVP)
 
-1. Start Redis infrastructure:
-   ```bash
-   docker compose up -d
-   ```
+```bash
+cd backend
+uv sync
+uv run playwright install chromium
+uv run uvicorn app.main:app --reload
+```
 
-2. Start the FastAPI Backend:
-   ```bash
-   cd backend
-   uv sync
-   uv run uvicorn app.main:app --reload
-   ```
+Then request any URL through ContextPortal:
 
-3. Start the Next.js Frontend:
-   ```bash
-   cd frontend
-   pnpm install
-   pnpm dev
-   ```
+```
+http://localhost:8000/c?url=https://example.com/some-protected-page
+```
 
-## Agent Documentation & Instructions
+- **Public pages** are fetched instantly via HTTP.
+- **Protected pages** trigger a Playwright browser window where you log in manually. Once authenticated, the content is extracted and returned as clean Markdown.
 
-ContextPortal uses a layered agent instruction and documentation setup:
+## How It Works
+
+```
+Agent (or browser)
+  ↓
+GET /c?url=<target>
+  ↓
+ContextPortal
+  ↓
+┌─────────────────┐
+│ Public?          │──→ Normal HTTP fetch → Markdown → Return
+│ Protected?       │──→ Playwright browser (user logs in) → Extract → Markdown → Return
+└─────────────────┘
+```
+
+The browser is an implementation detail. The URL is the interface.
+
+## Project Documentation
 
 | File | Purpose |
 |---|---|
-| **[`AGENT_RULES.md`](AGENT_RULES.md)** | Core security and engineering rules (ephemeral proxy, SSRF, token security) |
-| **[`AGENTS.md`](AGENTS.md)** | Root agent entry point & OpenWiki index pointer |
-| **[`CLAUDE.md`](CLAUDE.md)** | Compatibility forwarder to `AGENTS.md` for Claude Code CLI |
-| **[`docs/`](docs/agent-architecture-and-rules.md)** | Human-maintained project & architecture documentation |
+| **[`docs/PRODUCT_THESIS.md`](docs/PRODUCT_THESIS.md)** | Core product definition — read this first |
+| **[`AGENT_RULES.md`](AGENT_RULES.md)** | Security and engineering rules for AI agents |
+| **[`AGENTS.md`](AGENTS.md)** | Agent entry point & OpenWiki pointer |
+| **[`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md)** | Current phase and next steps |
+| **[`decisions/`](decisions/)** | Architecture Decision Records |
+| **[`docs/`](docs/)** | Human-maintained documentation |
 | **[`openwiki/`](openwiki/quickstart.md)** | Automated living codebase evidence index |
 
-### OpenWiki Commands
-- **Update Wiki**: `openwiki --update`
-- **Configure Gemini Provider**:
-  ```powershell
-  $env:OPENWIKI_PROVIDER="gemini"
-  $env:GEMINI_API_KEY="your-api-key"
-  openwiki --update --modelId gemini-2.5-flash
-  ```
-- **Interactive Visualizer**: `openwiki visualize`
+## Development Phases
 
-
+- [x] **Phase 0** — Repository bootstrap (FastAPI, uv, Next.js scaffold)
+- [x] **Phase A** — Retrieval Proof (current MVP)
+- [ ] **Phase B** — Agent Interface (MCP or similar)
+- [ ] **Phase C** — Resource Isolation
+- [ ] **Phase D** — Authentication Session Management
+- [ ] **Phase E** — Security Hardening
+- [ ] **Phase F** — Production Infrastructure

@@ -6,7 +6,7 @@ from app.main import app
 async def test_health_check_redis_disconnected():
     # Because we're not running redis in this basic unit test, it will probably report disconnected
     # but the endpoint should still return 200 OK.
-    async with AsyncClient(transport=ASITransport(app=app), base_url="http://test") as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"

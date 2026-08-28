@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "context-portal": {
+      "command": "uv",
+      "args": [
+        "run",
+        "python",
+        "-m",
+        "app.mcp.server"
+      ],
+      "cwd": "<ABSOLUTE_PATH_TO_YOUR_PROJECT>/backend",
+      "env": {}
+    }
+  }
+}

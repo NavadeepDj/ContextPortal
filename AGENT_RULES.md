@@ -484,7 +484,7 @@ A feature is complete only when:
 OpenWiki maintains a living, agent-readable evidence index of the codebase in `openwiki/`.
 
 ### Source of Truth Hierarchy
-1. **Product Truth & Architecture Constraints**: `PROJECT_SPEC.md`, `AGENT_RULES.md`, `IMPLEMENTATION_PLAN.md`, and `decisions/` ADRs.
+1. **Product Truth & Architecture Constraints**: `docs/PRODUCT_THESIS.md` (primary), `AGENT_RULES.md`, `IMPLEMENTATION_PLAN.md`, and `decisions/` ADRs. Note: `PROJECT_SPEC.md` is superseded by the thesis.
 2. **Implementation Truth**: Active source code, schemas, and test suites.
 3. **Living Map**: `openwiki/` generated pages.
 

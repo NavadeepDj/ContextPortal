@@ -28,3 +28,4 @@ As with Phase B.2, returning descriptive strings prevents agents from getting st
 
 ## Testing Strategy
 To maintain the speed of the MCP in-memory tests, we use `unittest.mock.AsyncMock` to patch `get_context`. This ensures our protocol tests verify the orchestrator handoff successfully without accidentally spinning up a real headless browser during CI runs.
+

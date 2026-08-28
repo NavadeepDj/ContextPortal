@@ -7,11 +7,18 @@ from mcp.client.session import ClientSession
 from app.mcp.server import mcp
 
 from unittest.mock import patch, AsyncMock
+from app.core.retriever import ContextResult
 
 @pytest.fixture
 def mock_get_context():
     with patch("app.mcp.server.get_context", new_callable=AsyncMock) as mock:
-        mock.return_value = "# Mocked Content"
+        mock.return_value = ContextResult(
+            url="https://example.com/redirected",
+            title="Example Title",
+            content="# Mocked Content",
+            retrieval_method="http",
+            authenticated=False
+        )
         yield mock
 
 @pytest.mark.asyncio
@@ -50,7 +57,10 @@ async def test_mcp_fetch_context(mock_get_context):
                 assert not result.is_error
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
-                assert result.content[0].text == "# Mocked Content"
+                assert "# Example Title" in result.content[0].text
+                assert "**Source URL**: https://example.com/redirected" in result.content[0].text
+                assert "**Retrieval Method**: http" in result.content[0].text
+                assert "# Mocked Content" in result.content[0].text
                 
                 mock_get_context.assert_called_once_with("https://example.com")
                 

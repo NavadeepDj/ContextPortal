@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock, PropertyMock
-from app.core.retriever import extract_markdown, fetch_public, get_context, fetch_authenticated
+from app.core.retriever import extract_markdown, fetch_public, get_context, fetch_authenticated, ContextResult
 
 
 @pytest.mark.asyncio
@@ -16,7 +16,7 @@ async def test_extract_markdown():
         </body>
     </html>
     """
-    md = await extract_markdown(html)
+    md, title = await extract_markdown(html)
     assert "# Main Title" in md
     assert "This is a paragraph with **bold** text." in md
     assert "Malicious or tracker script" not in md
@@ -35,7 +35,8 @@ async def test_fetch_public_success(mock_get):
 
     result = await fetch_public("https://example.com/article")
     assert result is not None
-    assert "# Sample Article" in result
+    assert result.retrieval_method == "http"
+    assert "# Sample Article" in result.content
 
 
 @pytest.mark.asyncio
@@ -99,7 +100,7 @@ async def test_fetch_public_non_html(mock_get):
     mock_get.return_value = mock_response
 
     result = await fetch_public("https://example.com/data.json")
-    assert result == '{"status": "ok", "message": "hello"}'
+    assert result.content == '{"status": "ok", "message": "hello"}'
 
 
 @pytest.mark.asyncio
@@ -115,10 +116,11 @@ async def test_fetch_public_exception(mock_get):
 @patch("app.core.retriever.fetch_public")
 @patch("app.core.retriever.fetch_authenticated")
 async def test_get_context_public_branch(mock_fetch_auth, mock_fetch_public):
-    mock_fetch_public.return_value = "# Public Markdown"
+    from app.core.retriever import ContextResult
+    mock_fetch_public.return_value = ContextResult(url="https://example.com", title=None, content="# Public Markdown", retrieval_method="http", authenticated=False)
 
     result = await get_context("https://example.com")
-    assert result == "# Public Markdown"
+    assert result.content == "# Public Markdown"
     mock_fetch_public.assert_called_once_with("https://example.com")
     mock_fetch_auth.assert_not_called()
 
@@ -128,10 +130,10 @@ async def test_get_context_public_branch(mock_fetch_auth, mock_fetch_public):
 @patch("app.core.retriever.fetch_authenticated")
 async def test_get_context_fallback_to_authenticated(mock_fetch_auth, mock_fetch_public):
     mock_fetch_public.return_value = None
-    mock_fetch_auth.return_value = "# Authenticated Context"
+    mock_fetch_auth.return_value = ContextResult(url="https://example.com/protected", title=None, content="# Authenticated Context", retrieval_method="browser", authenticated=True)
 
     result = await get_context("https://example.com/protected")
-    assert result == "# Authenticated Context"
+    assert result.content == "# Authenticated Context"
     mock_fetch_public.assert_called_once_with("https://example.com/protected")
     mock_fetch_auth.assert_called_once_with("https://example.com/protected")
 
@@ -139,9 +141,9 @@ async def test_get_context_fallback_to_authenticated(mock_fetch_auth, mock_fetch
 @pytest.mark.asyncio
 @patch("app.core.retriever._fetch_authenticated_sync")
 async def test_fetch_authenticated_thread_delegation(mock_sync_fetch):
-    mock_sync_fetch.return_value = "# Auth Markdown"
+    mock_sync_fetch.return_value = ContextResult(url="https://example.com/protected", title=None, content="# Auth Markdown", retrieval_method="browser", authenticated=True)
     result = await fetch_authenticated("https://example.com/protected")
-    assert result == "# Auth Markdown"
+    assert result.content == "# Auth Markdown"
     mock_sync_fetch.assert_called_once_with("https://example.com/protected")
 
 
@@ -164,8 +166,8 @@ def test_fetch_authenticated_sync_already_authenticated(mock_sync_playwright):
 
     result = _fetch_authenticated_sync("https://example.com/dashboard")
 
-    assert "# Dashboard" in result
-    assert "Authorized user info" in result
+    assert "# Dashboard" in result.content
+    assert "Authorized user info" in result.content
     mock_browser_context.close.assert_called_once()
 
 
@@ -196,8 +198,8 @@ def test_fetch_authenticated_sync_with_login_flow(mock_sync_playwright, mock_tim
 
     result = _fetch_authenticated_sync("https://project-dynamo.learn.joinhandshake.com/introduction")
 
-    assert "# Protected Course" in result
-    assert "Welcome student!" in result
+    assert "# Protected Course" in result.content
+    assert "Welcome student!" in result.content
     mock_browser_context.close.assert_called_once()
 
 

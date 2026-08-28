@@ -5,10 +5,21 @@ from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeo
 from bs4 import BeautifulSoup
 from readability import Document
 import markdownify
+from pydantic import BaseModel
+from typing import Optional, Tuple
 
-async def extract_markdown(html: str) -> str:
-    """Extracts main content from HTML and converts it to Markdown."""
+class ContextResult(BaseModel):
+    url: str
+    title: Optional[str] = None
+    content: str
+    content_type: str = "text/markdown"
+    retrieval_method: str
+    authenticated: bool
+
+async def extract_markdown(html: str) -> Tuple[str, str]:
+    """Extracts main content from HTML and converts it to Markdown. Returns (markdown, title)."""
     doc = Document(html)
+    title = doc.title()
     main_html = doc.summary()
     soup = BeautifulSoup(main_html, "lxml")
     md_content = markdownify.markdownify(
@@ -17,10 +28,10 @@ async def extract_markdown(html: str) -> str:
         strip=['script', 'style']
     )
     md_content = "\n".join([line for line in md_content.splitlines() if line.strip() or line == ""])
-    return md_content.strip()
+    return md_content.strip(), title
 
-async def fetch_public(url: str) -> str | None:
-    """Attempts to fetch the URL normally. Returns Markdown if successful and not blocked, else None."""
+async def fetch_public(url: str) -> ContextResult | None:
+    """Attempts to fetch the URL normally. Returns ContextResult if successful and not blocked, else None."""
     try:
         async with httpx.AsyncClient(follow_redirects=True, timeout=10.0) as client:
             response = await client.get(url)
@@ -38,15 +49,29 @@ async def fetch_public(url: str) -> str | None:
             
             content_type = response.headers.get("content-type", "")
             if "text/html" not in content_type:
-                return response.text
+                return ContextResult(
+                    url=final_url,
+                    title=None,
+                    content=response.text,
+                    content_type=content_type,
+                    retrieval_method="http",
+                    authenticated=False
+                )
                 
-            md = await extract_markdown(response.text)
+            md, title = await extract_markdown(response.text)
             
             if len(md.strip()) < 100:
                 print("Public fetch returned virtually empty content (likely an SPA shell).")
                 return None
                 
-            return md
+            return ContextResult(
+                url=final_url,
+                title=title,
+                content=md,
+                content_type="text/markdown",
+                retrieval_method="http",
+                authenticated=False
+            )
     except Exception as e:
         print(f"Public fetch failed: {e}")
         return None
@@ -64,7 +89,7 @@ def _is_on_target_content(page, target_url: str) -> bool:
     return current.netloc == target.netloc and not is_auth_page
 
 
-def _fetch_authenticated_sync(url: str) -> str:
+def _fetch_authenticated_sync(url: str) -> ContextResult:
     """
     Sync function that runs Playwright in a thread.
     Uses sync_api to avoid the Windows asyncio subprocess bug.
@@ -161,9 +186,11 @@ def _fetch_authenticated_sync(url: str) -> str:
                     
             print("Extracting content...")
             html_content = page.content()
+            final_url = page.url
             
             # Extract markdown synchronously here since we're in a thread
             doc = Document(html_content)
+            title = doc.title()
             main_html = doc.summary()
             soup = BeautifulSoup(main_html, "lxml")
             md_content = markdownify.markdownify(
@@ -172,16 +199,24 @@ def _fetch_authenticated_sync(url: str) -> str:
                 strip=['script', 'style']
             )
             md_content = "\n".join([line for line in md_content.splitlines() if line.strip() or line == ""])
-            return md_content.strip()
+            
+            return ContextResult(
+                url=final_url,
+                title=title,
+                content=md_content.strip(),
+                content_type="text/markdown",
+                retrieval_method="browser",
+                authenticated=True
+            )
             
         finally:
             browser_context.close()
 
-async def fetch_authenticated(url: str) -> str:
+async def fetch_authenticated(url: str) -> ContextResult:
     """Runs Playwright in a background thread to avoid Windows asyncio issues."""
     return await asyncio.to_thread(_fetch_authenticated_sync, url)
 
-async def get_context(url: str) -> str:
+async def get_context(url: str) -> ContextResult:
     """Main entrypoint: tries public fetch, falls back to authenticated fetch."""
     print(f"Attempting normal public fetch for: {url}")
     public_result = await fetch_public(url)

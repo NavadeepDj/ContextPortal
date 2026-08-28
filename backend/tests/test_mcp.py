@@ -42,6 +42,14 @@ async def test_mcp_fetch_context():
                 assert len(result.content) == 1
                 assert result.content[0].type == "text"
                 assert result.content[0].text == "MCP connection successful"
+                
+                # 7. Verify security policy enforcement over MCP
+                result_local = await session.call_tool("fetch_context", {"url": "http://localhost:8000"})
+                # We return the error as a readable string to the LLM
+                assert "Error: Access to localhost is forbidden by security policy" in result_local.content[0].text
+                
+                result_file = await session.call_tool("fetch_context", {"url": "file:///etc/passwd"})
+                assert "Error: Invalid scheme" in result_file.content[0].text
         finally:
             # Clean up the background server task
             server_task.cancel()

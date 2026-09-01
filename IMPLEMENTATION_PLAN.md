@@ -2,35 +2,42 @@
 
 Aligned with the core thesis in `PRODUCT_THESIS.md`.
 
-## Current Objective: Phase A — Retrieval Proof (Local MVP)
+## Current Objective: Phase C — Distribution & Developer Experience
 
-**Goal:** Prove the core product abstraction: `URL → ContextPortal → Clean Markdown`.
-The agent requests a URL, and ContextPortal retrieves it using either a normal HTTP fetch (if public) or a legitimate authorized browser session (if protected).
+**Goal:** Transform ContextPortal from a local prototype into an easily installable, agent-agnostic developer tool with a seamless "First 5 Minutes" UX. 
+The developer should never have to manually write absolute paths in MCP configurations or fiddle with browser cookies.
 
-### Phase A: Thin Local MVP
-We will build a minimal, local-only Python implementation that demonstrates the end-to-end flow.
+### Phase A: Retrieval Proof (Local MVP) — ✅ COMPLETED
+- `playwright` for persistent browser sessions.
+- `httpx` for lightweight HTTP fallback.
+- Readability + Markdownify extraction pipeline.
+- End-to-end extraction from a protected enterprise resource proven.
 
-#### Step 1: Core Dependencies
-- Add `playwright` for browser automation (the authorized retrieval mechanism).
-- Add `httpx` (already present) for normal public fetching.
-- Add `readability-lxml` and `markdownify` for content extraction and normalization.
+### Phase B: Agent Interface (MCP) — ✅ COMPLETED
+- Expose the retrieval capability (`fetch_context`) through the Model Context Protocol (STDIO transport).
+- SSRF and credential-leakage hardening.
+- Live validation with real AI agents on 10 edge-case URLs (Phase B.6).
 
-#### Step 2: The Retrieval Engine
-Create `backend/app/core/retriever.py`:
-- **`fetch_public(url)`**: Attempts a standard HTTP GET. If it returns 200 and looks like public content, it returns it. If it hits 401/403/auth walls, it fails over to the authenticated path.
-- **`fetch_authenticated(url)`**: Launches a visible Playwright browser using a persistent context.
-  - Navigates to the URL.
-  - Pauses to allow the user to manually log in if they aren't already.
-  - Once the target content is loaded, extracts the DOM.
-- **`extract_markdown(html)`**: Cleans the HTML (strips scripts/styles/nav), identifies primary content, and converts it to markdown.
+### Phase C: Distribution & Developer Experience (CURRENT)
 
-#### Step 3: The Agent Interface
-Create a simple local FastAPI endpoint (`GET /c?url=<URL>`) or a CLI command (`python -m contextportal fetch <URL>`).
-- This acts as the boundary. The agent only interacts with this interface, never the browser directly.
+#### C.1 — Package ContextPortal
+Turn the backend into a proper installable Python package via `pyproject.toml` `[project.scripts]`.
+**Expected Outcome:** Developer can run `uv tool install contextportal` (or `pip install`) and immediately have the `contextportal` CLI available globally.
 
-#### Next Steps (Deferred until Phase A is proven)
-- Phase B: Agent Interface (MCP server).
-- Phase C: Resource Isolation (Strict boundaries).
-- Phase D: Authentication Session Management (Redis).
-- Phase E: Security Hardening (SSRF, origin checks).
-- Phase F: Production Infrastructure.
+#### C.2 — Trivial MCP Configuration
+Replace fragile, absolute-path JSON configurations with simple command execution.
+**Expected Outcome:** MCP configuration becomes as simple as `{"command": "contextportal", "args": ["mcp"]}`.
+
+#### C.3 — Seamless Auth/Session Setup (`contextportal login`)
+Provide a dedicated CLI command for developers to easily pre-warm their authenticated sessions. We should never ask developers to copy/paste cookies or authentication tokens.
+**Expected Outcome:** Running `contextportal login` opens the persistent browser. The developer logs in normally, closes the window, and the session is permanently ready for the AI agent to use in the background.
+
+#### C.4 — Agent-Agnostic Validation
+Ensure ContextPortal works identically and frictionlessly across Claude Desktop, Cursor, and Antigravity.
+
+#### C.5 — The "First 5 Minutes" UX Redesign
+Rewrite the `README.md` to immediately communicate the value prop ("The authenticated fetch layer for AI agents") and provide a 3-step quickstart.
+
+### Future Roadmap
+- **Phase D:** Intelligent Retrieval Routing (Levels 0-3: Caching, Fast HTTP, Headless JS, Persistent Auth).
+- **Phase E:** Remote MCP & Cloud Deployment (Multi-tenant public retrieval with Local Gateway hybrid).

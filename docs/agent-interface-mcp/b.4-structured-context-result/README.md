@@ -32,3 +32,11 @@ Extracted content...
 
 ### Zero Credential Leakage
 This design strictly enforces our "Zero Credential Leakage" security rule. The `ContextResult` object intentionally omits headers, cookies, and local file paths (such as the Playwright `user_data_dir`). The agent gets exactly the context it needs to answer the user's question, and absolutely nothing more.
+
+---
+
+## 🧪 Test Suite Migration
+With the transition from raw strings to `ContextResult`, all retriever and API tests were updated:
+- **`test_retriever.py`**: Updated mock return values to instantiate `ContextResult` instances (`retrieval_method="http"` vs `"browser"`, `authenticated=True/False`) and asserted against `result.content` and `result.title`.
+- **`test_api.py`**: Verified that the `/c` REST endpoint unpacks `ContextResult.content` to preserve backward compatibility for standard HTTP clients.
+- **`test_mcp.py`**: Asserted that the MCP tool properly formats title headers, source URLs, and markdown body without leaking internal authentication state.

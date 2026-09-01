@@ -15,6 +15,12 @@ dependencies = [
     "mcp[cli]>=2.1.1",
 ]
 
+[project.scripts]
+contextportal = "app.cli:main"
+
+[tool.setuptools]
+packages = ["app"]
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",

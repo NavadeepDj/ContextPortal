@@ -8,9 +8,7 @@
         "-m",
         "app.mcp.server"
       ],
-      "cwd": "<ABSOLUTE_PATH_TO_YOUR_PROJECT>/backend",
-      "env": {}
+      "cwd": "C:\\Users\\maruthi.n.marella\\ContextPortal\\backend"
     }
   }
 }
-

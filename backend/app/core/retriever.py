@@ -30,10 +30,13 @@ async def extract_markdown(html: str) -> Tuple[str, str]:
     md_content = "\n".join([line for line in md_content.splitlines() if line.strip() or line == ""])
     return md_content.strip(), title
 
+USER_AGENT = "ContextPortal/0.1.0 (+https://github.com/NavadeepDj/ContextPortal)"
+
 async def fetch_public(url: str) -> ContextResult | None:
     """Attempts to fetch the URL normally. Returns ContextResult if successful and not blocked, else None."""
+    headers = {"User-Agent": USER_AGENT}
     try:
-        async with httpx.AsyncClient(follow_redirects=True, timeout=10.0) as client:
+        async with httpx.AsyncClient(headers=headers, follow_redirects=True, timeout=10.0) as client:
             response = await client.get(url)
             
             if response.status_code in (401, 403):

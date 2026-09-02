@@ -18,8 +18,9 @@ dependencies = [
 [project.scripts]
 contextportal = "app.cli:main"
 
-[tool.setuptools]
-packages = ["app"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app", "app.*"]
 
 [project.optional-dependencies]
 dev = [

@@ -14,10 +14,8 @@ def run_login(start_url: Optional[str] = None) -> None:
     import time
     from pathlib import Path
     
-    # Same profile directory used by the retriever
-    profile_dir = Path("./playwright_profile").resolve()
-    
-    print("\n[ContextPortal Login Mode]")
+    # Use global profile directory so sessions persist no matter where the CLI is run
+    profile_dir = Path.home() / ".contextportal" / "playwright_profile"
     print(f"Using persistent profile at: {profile_dir}")
     print("A browser window will now open.")
     print("1. Navigate to the websites you want your AI agent to access.")

@@ -2,12 +2,19 @@ import pytest
 from unittest.mock import patch
 from httpx import AsyncClient, ASGITransport
 from app.main import app
+from app.core.retriever import ContextResult
 
 
 @pytest.mark.asyncio
 @patch("app.main.get_context")
 async def test_fetch_context_endpoint_success(mock_get_context):
     mock_get_context.return_value = ContextResult(
+        url="https://example.com/article",
+        title="Extracted Article Content",
+        content="# Extracted Article Content\n\nThis is sample markdown.",
+        retrieval_method="http",
+        authenticated=False,
+    )
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.get("/c?url=https://example.com/article")
 

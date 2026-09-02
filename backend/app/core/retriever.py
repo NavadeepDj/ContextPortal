@@ -98,7 +98,9 @@ def _fetch_authenticated_sync(url: str) -> ContextResult:
     main page's URL rather than watching for DOM changes on the page,
     since OAuth opens new windows that we can't inspect.
     """
-    user_data_dir = "./playwright_profile"
+    # Use a deterministic global directory for the user profile so it persists across different CWDs
+    from pathlib import Path
+    user_data_dir = str(Path.home() / ".contextportal" / "playwright_profile")
     
     with sync_playwright() as p:
         browser_context = p.chromium.launch_persistent_context(

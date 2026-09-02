@@ -1,14 +1,8 @@
 {
   "mcpServers": {
     "context-portal": {
-      "command": "uv",
-      "args": [
-        "run",
-        "python",
-        "-m",
-        "app.mcp.server"
-      ],
-      "cwd": "C:\\Users\\maruthi.n.marella\\ContextPortal\\backend"
+      "command": "contextportal",
+      "args": ["mcp"]
     }
   }
 }

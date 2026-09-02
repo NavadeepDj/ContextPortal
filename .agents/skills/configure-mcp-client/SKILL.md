@@ -28,24 +28,20 @@ Antigravity loads active MCP servers from its global configuration file, with fa
 - **Global (Active in IDE)**: `~/.gemini/config/mcp_config.json` (Windows: `C:\Users\<username>\.gemini\config\mcp_config.json`)
 - **Workspace (Checked into Repo)**: `.agents/mcp_config.json`
 
-### JSON Schema
+### JSON Schema (Phase C Global CLI)
 ```json
 {
   "mcpServers": {
     "context-portal": {
-      "command": "uv",
-      "args": [
-        "run",
-        "--directory",
-        "<ABSOLUTE_PATH_TO_PROJECT>\\backend",
-        "python",
-        "-m",
-        "app.mcp.server"
-      ]
+      "command": "contextportal",
+      "args": ["mcp"]
     }
   }
 }
 ```
+
+> [!TIP]
+> If `contextportal` is not in the system `PATH`, you can provide the full binary path (e.g. `C:\\Users\\<username>\\.local\\bin\\contextportal`).
 
 > [!IMPORTANT]
 > Always use `--directory <path>\backend` instead of relying purely on `cwd` to prevent working-directory resolution issues on Windows.

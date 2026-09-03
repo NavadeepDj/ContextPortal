@@ -1,0 +1,45 @@
+name: Publish - TestPyPI (Pre-Release)
+
+on:
+  push:
+    tags:
+      - "v*rc*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish-testpypi:
+    name: Build & Publish to TestPyPI
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/project/contextportal/
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - name: Build distribution packages
+        run: uv build
+
+      - name: Validate distribution artifacts
+        run: |
+          uv run --with twine twine check dist/*
+
+      - name: Publish to TestPyPI via OIDC
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          packages-dir: backend/dist/
+

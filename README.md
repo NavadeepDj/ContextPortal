@@ -226,6 +226,7 @@ Found a bug? Have a feature idea? [Open an issue](https://github.com/NavadeepDj/
 | [**Session Persistence**](docs/session-persistence-and-storage.md) | How browser sessions are stored and isolated |
 | [**Security Philosophy**](docs/security-and-automation-philosophy.md) | The "context, not control" security model |
 | [**User-Agent Policy**](docs/user-agent-and-client-identity/README.md) | Why ContextPortal identifies itself honestly |
+| [**OIDC Trusted Publishing**](docs/publishing-and-releases/understanding-oidc.md) | Zero-secret automated PyPI release architecture |
 | [**MCP Integration**](docs/agent-interface-mcp/) | How the Model Context Protocol server works |
 | [**API Usage**](docs/api-usage.md) | Using the FastAPI REST endpoint directly |
 

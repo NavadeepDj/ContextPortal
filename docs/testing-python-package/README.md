@@ -101,6 +101,7 @@ contextportal mcp
 - 📄 **[Level 1: Local Source Install Test Report](local-test/README.md)**
 - 📄 **[Level 2: Distributable Wheel (.whl) Test Report](wheel-test/README.md)**
 - 📄 **[End-to-End AI Agent Integration & Autonomous Invocation Test Report](end-to-end-agent-test/README.md)**
+- 📄 **[Level 3: TestPyPI Registry Distribution & Verification Report](testpypi-test/README.md)**
 
 
 

@@ -4,6 +4,12 @@
     <strong>Give your AI agent access to authenticated web pages — without giving it your credentials.</strong>
   </p>
   <p align="center">
+    <a href="https://contextportal.vercel.app"><img src="https://img.shields.io/badge/Website-contextportal.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Website" /></a>
+    <a href="https://pypi.org/project/contextportal/"><img src="https://img.shields.io/pypi/v/contextportal?style=for-the-badge&color=blue&logo=pypi&logoColor=white" alt="PyPI Version" /></a>
+    <a href="https://github.com/NavadeepDj/ContextPortal/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License" /></a>
+  </p>
+  <p align="center">
+    <a href="https://contextportal.vercel.app">🌐 Live Demo</a> · 
     <a href="#-quickstart">Quickstart</a> · 
     <a href="#-how-it-works">How It Works</a> · 
     <a href="#-security">Security</a> · 

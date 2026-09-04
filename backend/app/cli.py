@@ -90,12 +90,14 @@ def run_setup(client_filter: str = "all", dry_run: bool = False) -> None:
             sys.exit(1)
 
     configured_any = False
+    is_specific = client_filter != "all"
     for client in clients:
-        success, message = inject_mcp_config(client.config_path, key_name=client.key_name, dry_run=dry_run)
-        symbol = "[+]" if success else "[-]"
+        success, message = inject_mcp_config(client.config_path, key_name=client.key_name, dry_run=dry_run, force=is_specific)
+        is_skipped = "skipped" in message.lower()
+        symbol = "[-]" if is_skipped else ("[+]" if success else "[!]")
         print(f"  {symbol} {client.display_name:<16}: {message}")
         print(f"      Target: {client.config_path}")
-        if success and "not detected" not in message.lower() and "failed" not in message.lower():
+        if success and not is_skipped and "failed" not in message.lower():
             configured_any = True
 
     print("\n" + "=" * 60)

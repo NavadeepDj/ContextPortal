@@ -46,13 +46,22 @@ def get_contextportal_mcp_entry() -> Dict[str, any]:
         "args": ["mcp"]
     }
 
-def inject_mcp_config(config_path: Path, key_name: str = "mcpServers", dry_run: bool = False) -> Tuple[bool, str]:
+def is_client_detected(client: ClientConfig) -> bool:
+    """Returns True if the client's config file or parent directory exists on the system."""
+    return client.config_path.exists() or client.config_path.parent.exists()
+
+def inject_mcp_config(config_path: Path, key_name: str = "mcpServers", dry_run: bool = False, force: bool = False) -> Tuple[bool, str]:
     """
     Safely injects ContextPortal into the given client's configuration file.
     Creates parent directories and a .bak backup file if modified.
+    If force is False and parent directory does not exist, skips configuration.
     Returns (success, message).
     """
     target_entry = get_contextportal_mcp_entry()
+
+    # Skip if client is not detected on this system, unless force is requested
+    if not force and not config_path.exists() and not config_path.parent.exists():
+        return True, "Skipped (Client not installed on this system)"
 
     try:
         data: Dict[str, any] = {}

@@ -13,7 +13,14 @@ def test_get_supported_clients():
 def test_inject_mcp_config_fresh_file(tmp_path):
     config_file = tmp_path / "test_client" / "config.json"
     
-    success, msg = inject_mcp_config(config_file)
+    # Without force and parent non-existent, should skip
+    success_skip, msg_skip = inject_mcp_config(config_file, force=False)
+    assert success_skip is True
+    assert "Skipped" in msg_skip
+    assert not config_file.exists()
+
+    # With force=True, should create and configure
+    success, msg = inject_mcp_config(config_file, force=True)
     assert success is True
     assert config_file.exists()
 
@@ -54,6 +61,7 @@ def test_inject_mcp_config_preserves_existing_servers(tmp_path):
 
 def test_inject_mcp_config_idempotent(tmp_path):
     config_file = tmp_path / "config.json"
+    config_file.touch()
     
     # First injection
     success1, msg1 = inject_mcp_config(config_file)
@@ -66,7 +74,8 @@ def test_inject_mcp_config_idempotent(tmp_path):
     assert "Already configured" in msg2
 
 def test_inject_mcp_config_dry_run(tmp_path):
-    config_file = tmp_path / "non_existent.json"
+    # If parent exists, dry run previews
+    config_file = tmp_path / "preview.json"
     
     success, msg = inject_mcp_config(config_file, dry_run=True)
     assert success is True

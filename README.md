@@ -44,17 +44,32 @@ uv tool install contextportal
 
 > Don't have `uv`? → `pip install contextportal` works too.
 
-### 2. Log into your sites
+### 2. Auto-configure your AI agent
+```bash
+contextportal setup
+```
+
+That's it! ContextPortal automatically detects **Claude Desktop**, **Cursor**, and **Antigravity IDE**, and safely registers the MCP server for you. No manual JSON editing required.
+
+> Run `contextportal doctor` anytime to check your system and MCP connection status.
+
+### 3. Log into your private sites
 
 ```bash
 contextportal login
 ```
 
-A Chrome window opens. Log into whatever private sites you want your agent to access — Jira, Handshake, your company wiki, anything. Close the window when you're done. That's it. Your session lives locally on your machine, never uploaded anywhere.
+A Chrome window opens. Log into whatever private sites you want your agent to access — Jira, Confluence, internal wikis, Handshake, enterprise dashboards. Close the window when you're done. Your session lives locally on your machine and never leaves your computer.
 
-### 3. Connect to your AI agent
+### 4. Ask your agent anything
 
-Drop this into your agent's MCP config (works with **Cursor**, **Claude Desktop**, **Antigravity**, **VS Code**, and any MCP-compatible client):
+> *"Summarize the roadmap at https://internal.company.com/q3-roadmap"*
+
+Your agent calls ContextPortal → ContextPortal retrieves the page through your authenticated session → clean, LLM-ready Markdown comes back.
+
+### Manual Configuration (Optional)
+
+If you prefer to configure your agent manually:
 
 ```json
 {
@@ -66,12 +81,6 @@ Drop this into your agent's MCP config (works with **Cursor**, **Claude Desktop*
   }
 }
 ```
-
-### 4. Ask it anything
-
-> *"Summarize the onboarding docs at https://internal.company.com/handbook"*
-
-Your agent calls ContextPortal → ContextPortal fetches the page through your authenticated session → clean Markdown comes back → the agent reasons over it.
 
 **You're done. Go build something cool.**
 

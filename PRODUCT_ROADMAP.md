@@ -9,31 +9,27 @@ No API keys. No cloud accounts. No copying cookies. No manual MCP JSON configura
 
 ---
 
-## 🚀 Release 0.1 — Developer Preview (CURRENT FOCUS)
-**Status:** In Progress
+## 🚀 Release 0.1 — Developer Preview
+**Status:** Completed ✅
 
 The transition from "my local project" to "public developer tool".
 - [x] Functional CLI (`login`, `fetch`, `mcp`)
 - [x] Packaged as a standard Python wheel
-- [ ] Published to TestPyPI for validation
-- [ ] Published to PyPI (`uv tool install contextportal`)
+- [x] Published to TestPyPI for validation
+- [x] Published to PyPI (`uv tool install contextportal`)
 
-**Target Audience**: Developers and early adopters who understand how to configure MCP manually.
+**Target Audience**: Developers and early adopters.
 
 ---
 
 ## 🪄 Release 0.2 — "It Just Works" (The UX Update)
-**Status:** Planned
+**Status:** Implemented & Verified ✅
 
 Transforming the installation experience from 5 minutes to 30 seconds by hiding the complexity of JSON, virtual environments, and browser profiles.
 
-- **`contextportal setup`**: A unified command that handles:
-  - Browser profile initialization
-  - Chrome detection
-  - Interactive login sequence
-  - Session validation
-- **MCP Auto-Configuration**: `setup` detects installed AI clients (Cursor, Claude Desktop, Antigravity, VS Code) and automatically injects the `contextportal mcp` connection into their configurations.
-- **`contextportal status`**: A diagnostic command to check installation, browser connection, and MCP readiness.
+- [x] **`contextportal setup`**: Auto-detects installed AI clients (Claude Desktop, Cursor, Antigravity) and safely injects the `context-portal` MCP server with atomic backups.
+- [x] **`contextportal doctor` / `status`**: Diagnostics command to audit Python environment, PATH accessibility, browser profile, and client readiness.
+- [x] Comprehensive test suite for client discovery, atomic updates, and idempotency.
 
 ---
 

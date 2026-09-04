@@ -73,6 +73,39 @@ def run_fetch(url: str) -> None:
         
     asyncio.run(_do_fetch())
 
+def run_setup(client_filter: str = "all", dry_run: bool = False) -> None:
+    """Auto-configure MCP clients to connect to ContextPortal."""
+    from app.core.setup import get_supported_clients, inject_mcp_config
+    
+    print("=" * 60)
+    print("  [ContextPortal] Auto-Configuration Setup")
+    print("=" * 60)
+    print("Detecting and configuring AI agent clients...\n")
+
+    clients = get_supported_clients()
+    if client_filter != "all":
+        clients = [c for c in clients if c.name == client_filter]
+        if not clients:
+            print(f"Unknown client '{client_filter}'. Available options: all, claude, cursor, antigravity")
+            sys.exit(1)
+
+    configured_any = False
+    for client in clients:
+        success, message = inject_mcp_config(client.config_path, key_name=client.key_name, dry_run=dry_run)
+        symbol = "[+]" if success else "[-]"
+        print(f"  {symbol} {client.display_name:<16}: {message}")
+        print(f"      Target: {client.config_path}")
+        if success and "not detected" not in message.lower() and "failed" not in message.lower():
+            configured_any = True
+
+    print("\n" + "=" * 60)
+    if dry_run:
+        print("Dry run completed. No files were modified.")
+    else:
+        print("Done! Restart your AI agent client to load ContextPortal.")
+        print("Run 'contextportal doctor' anytime to verify your environment.")
+    print("=" * 60 + "\n")
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="ContextPortal — The authenticated fetch layer for AI agents."
@@ -106,6 +139,33 @@ def main() -> None:
         type=str, 
         help="The URL to fetch."
     )
+
+    # Setup Command (Release 0.2)
+    setup_parser = subparsers.add_parser(
+        "setup",
+        help="Auto-configure MCP connections in Claude, Cursor, and Antigravity."
+    )
+    setup_parser.add_argument(
+        "--client",
+        choices=["all", "claude", "cursor", "antigravity"],
+        default="all",
+        help="Specific AI client to configure (default: all)"
+    )
+    setup_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview changes without writing to configuration files."
+    )
+
+    # Doctor / Diagnostics Command (Release 0.2)
+    doctor_parser = subparsers.add_parser(
+        "doctor",
+        help="Check system health, browser storage, and MCP client readiness."
+    )
+    subparsers.add_parser(
+        "status",
+        help="Alias for 'doctor'."
+    )
     
     args = parser.parse_args()
     
@@ -115,6 +175,11 @@ def main() -> None:
         run_login(args.url)
     elif args.command == "fetch":
         run_fetch(args.url)
+    elif args.command == "setup":
+        run_setup(client_filter=args.client, dry_run=args.dry_run)
+    elif args.command in ("doctor", "status"):
+        from app.core.doctor import run_doctor
+        run_doctor()
 
 if __name__ == "__main__":
     main()

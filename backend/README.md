@@ -15,17 +15,37 @@ ContextPortal sits between your AI agent and the web. When the agent needs a pro
 uv tool install contextportal
 ```
 
-## Setup
+## 🪄 Quick Setup (Auto-Config)
+
+Configure your AI agent (Claude Desktop, Cursor, Antigravity) with a single command:
 
 ```bash
-# Log into your private sites (once)
-contextportal login
+contextportal setup
+```
 
-# Test it
+Verify your environment anytime:
+
+```bash
+contextportal doctor
+```
+
+## 🔐 Log In (Once)
+
+Log into your private sites in your local browser — your session is saved automatically:
+
+```bash
+contextportal login
+```
+
+Test it directly:
+
+```bash
 contextportal fetch https://your-protected-site.com/docs
 ```
 
-## Connect to your AI Agent
+## 🔌 Manual MCP Configuration (Optional)
+
+If you prefer to configure manually:
 
 ```json
 {
@@ -38,7 +58,7 @@ contextportal fetch https://your-protected-site.com/docs
 }
 ```
 
-Works with **Cursor**, **Claude Desktop**, **Antigravity**, **VS Code**, and any MCP-compatible client.
+Works with **Cursor**, **Claude Desktop**, **Antigravity**, **VS Code**, and any MCP client.
 
 ## Learn More
 

@@ -1,0 +1,106 @@
+import json
+import os
+import platform
+import shutil
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+@dataclass
+class ClientConfig:
+    name: str
+    display_name: str
+    config_path: Path
+    key_name: str = "mcpServers"
+
+def get_supported_clients() -> List[ClientConfig]:
+    """Returns the list of supported AI agent clients and their default config locations."""
+    system = platform.system()
+    home = Path.home()
+    clients: List[ClientConfig] = []
+
+    # 1. Claude Desktop
+    if system == "Windows":
+        claude_path = Path(os.environ.get("APPDATA", str(home / "AppData" / "Roaming"))) / "Claude" / "claude_desktop_config.json"
+    elif system == "Darwin":
+        claude_path = home / "Library" / "Application Support" / "Claude" / "claude_desktop_config.json"
+    else:
+        claude_path = home / ".config" / "Claude" / "claude_desktop_config.json"
+    
+    clients.append(ClientConfig(name="claude", display_name="Claude Desktop", config_path=claude_path))
+
+    # 2. Cursor
+    cursor_path = home / ".cursor" / "mcp.json"
+    clients.append(ClientConfig(name="cursor", display_name="Cursor", config_path=cursor_path))
+
+    # 3. Google Antigravity IDE
+    antigravity_path = home / ".gemini" / "antigravity" / "mcp_config.json"
+    clients.append(ClientConfig(name="antigravity", display_name="Antigravity IDE", config_path=antigravity_path))
+
+    return clients
+
+def get_contextportal_mcp_entry() -> Dict[str, any]:
+    """Returns the standardized MCP server configuration entry for ContextPortal."""
+    return {
+        "command": "contextportal",
+        "args": ["mcp"]
+    }
+
+def inject_mcp_config(config_path: Path, key_name: str = "mcpServers", dry_run: bool = False) -> Tuple[bool, str]:
+    """
+    Safely injects ContextPortal into the given client's configuration file.
+    Creates parent directories and a .bak backup file if modified.
+    Returns (success, message).
+    """
+    target_entry = get_contextportal_mcp_entry()
+
+    try:
+        data: Dict[str, any] = {}
+        file_exists = config_path.exists()
+
+        if file_exists:
+            try:
+                with open(config_path, "r", encoding="utf-8") as f:
+                    content = f.read().strip()
+                    if content:
+                        data = json.loads(content)
+            except Exception as e:
+                return False, f"Failed to parse existing JSON in {config_path}: {e}"
+
+        # Initialize root key if not present
+        if key_name not in data or not isinstance(data[key_name], dict):
+            data[key_name] = {}
+
+        # Check if already up-to-date
+        current = data[key_name].get("context-portal")
+        if current == target_entry:
+            return True, "Already configured and up-to-date"
+
+        data[key_name]["context-portal"] = target_entry
+
+        if dry_run:
+            return True, f"[Dry Run] Would update {config_path}"
+
+        # Ensure parent directory exists
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Create backup if file exists
+        if file_exists:
+            backup_path = config_path.with_suffix(config_path.suffix + ".bak")
+            try:
+                shutil.copy2(config_path, backup_path)
+            except Exception as e:
+                return False, f"Could not create backup at {backup_path}: {e}"
+
+        # Write formatted JSON atomically
+        temp_path = config_path.with_suffix(config_path.suffix + ".tmp")
+        with open(temp_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+            f.write("\n")
+
+        shutil.move(temp_path, config_path)
+        return True, "Configured successfully (backup created)"
+
+    except Exception as e:
+        return False, f"Error updating {config_path}: {e}"
+

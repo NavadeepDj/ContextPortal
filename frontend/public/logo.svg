@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <rect width="48" height="48" rx="12" fill="url(#gradient)" />
+  <!-- Portal Outer Ring -->
+  <circle cx="24" cy="24" r="14" stroke="#60A5FA" stroke-width="2.5" stroke-dasharray="4 2" opacity="0.85" />
+  <!-- Portal Inner Glow -->
+  <circle cx="24" cy="24" r="9" fill="#1E1B4B" stroke="#818CF8" stroke-width="2" />
+  <!-- Center Key / Lock Pin -->
+  <path d="M24 19V25M22 23H26" stroke="#F8FAFC" stroke-width="2.5" stroke-linecap="round" />
+  <circle cx="24" cy="27" r="1.5" fill="#38BDF8" />
+  <defs>
+    <linearGradient id="gradient" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2563EB" />
+      <stop offset="1" stop-color="#4F46E5" />
+    </linearGradient>
+  </defs>
+</svg>
+

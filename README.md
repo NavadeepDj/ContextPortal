@@ -4,31 +4,51 @@
     <strong>Give your AI agent access to authenticated web pages — without giving it your credentials.</strong>
   </p>
   <p align="center">
-    <a href="https://context-portal.vercel.app"><img src="https://img.shields.io/badge/Website-contextportal.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Website" /></a>
+    <a href="https://contextportal.vercel.app"><img src="https://img.shields.io/badge/Website-contextportal.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Website" /></a>
     <a href="https://pypi.org/project/contextportal/"><img src="https://img.shields.io/pypi/v/contextportal?style=for-the-badge&color=blue&logo=pypi&logoColor=white" alt="PyPI Version" /></a>
     <a href="https://github.com/NavadeepDj/ContextPortal/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License" /></a>
   </p>
   <p align="center">
     <a href="https://contextportal.vercel.app">🌐 Live Demo</a> · 
+    <a href="#-the-math-5-minutes-vs-3-seconds">The Math</a> · 
     <a href="#-quickstart">Quickstart</a> · 
     <a href="#-how-it-works">How It Works</a> · 
     <a href="#-security">Security</a> · 
-    <a href="#-contributing">Contributing</a> · 
     <a href="#-documentation">Docs</a>
   </p>
 </p>
 
 ---
 
-Your AI agent can fetch any public webpage. But the moment it hits a login page — Jira, Confluence, internal wikis, enterprise dashboards — it stops dead.
+### 💬 The Reality of AI Agents Today
 
-**ContextPortal fixes that.**
+> 🤖 **Agent:** *"I can't read this ticket. It's behind an SSO login wall."*  
+> 🤖 **Agent:** *"Please take 5 screenshots of the page, crop them, and paste the comments here."*  
+> 👤 **You:** *"No way. Why am I doing homework for an AI?"*  
+> 🔑 **ContextPortal:** *"Say less. Log in once in your browser; your agent retrieves the page forever."*
 
-It sits between your AI agent and the web. When the agent needs a protected page, ContextPortal uses *your* existing browser session to grab it, strips out all the noise, and hands back clean Markdown. The agent gets context. It never gets your cookies, your tokens, or your passwords.
+---
 
-> 🍪 *Agent: "Can I have your cookies?"*
-> 
-> 🚫 *ContextPortal: "No. Here's the page."*
+### 🏛️ The 4 Pillars
+
+| Pillar | What it Means for You |
+|---|---|
+| 🛑 **Stop feeding your AI screenshots.** | Copy-pasting and screenshotting is not an agent architecture. Give your agent autonomous retrieval. |
+| 🔁 **Authenticate once. Retrieve context continuously.** | Complete SSO or MFA once in your local browser. ContextPortal reuses your session for every future agent request. |
+| 🔐 **Your browser holds the session. Your agent gets the page. Zero cookies leaked.** | Cookies and tokens never leave your local disk. The agent receives clean, sanitized Markdown only. |
+| 🎯 **Give your agent a retrieval tool, not a browser to operate.** | Browsers are complex tools for humans. Don't make agents click, type, and navigate. Give them an atomic `fetch_context` tool. |
+
+---
+
+### ⏱️ The Math: 5 Minutes vs 3 Seconds
+
+| Step | ❌ The Screenshot Tax (Manual) | ✅ ContextPortal Flow (Autonomous) |
+|---|---|---|
+| **Human Action** | Open browser, find tab, screenshot, crop, paste, repeat | Zero. Your agent fetches in the background. |
+| **Latency** | **5 to 7 minutes** of context switching per ticket | **~2.5 seconds** (Playwright session reuse + Readability) |
+| **Agent Context** | Noisy OCR text, vision-token bloat, hallucinated tables | Clean, token-optimized ATX Markdown |
+| **Security** | Accidental leaks of auth headers or personal bookmarks in screenshots | 0 cookies or session tokens ever exposed to the model |
+| **Daily Impact** | ~50+ minutes lost across a typical 10-ticket workday | Completely frictionless and autonomous |
 
 ---
 

@@ -31,13 +31,13 @@ export const HeroSection = () => {
 
     const steps = [
       "Target URL: " + demoUrl,
-      "Step 1: Attempting public HTTP tier...",
-      "HTTP Status 403 Forbidden: SSO wall detected (Atlassian Cloud).",
-      "Step 2: Transparent escalation to local Playwright session...",
-      "Loaded stored session from ~/.contextportal/playwright_profile",
-      "Executing background DOM extraction (Readability engine)...",
-      "Synthesizing clean, LLM-ready ATX Markdown...",
-      "Success: 4,120 tokens ready. 0 cookies exposed.",
+      "Step 1: Attempting public HTTP fast-path (~150ms)...",
+      "HTTP Status 403 Forbidden: SSO login wall detected (Atlassian / Okta).",
+      "Step 2: Escalating to local Playwright session with saved browser state...",
+      "Loaded persistent session from ~/.contextportal/playwright_profile",
+      "Background Chromium rendered DOM + extracted article via Readability (2.8s)...",
+      "Synthesized clean, LLM-ready ATX Markdown (4,120 tokens)...",
+      "Success: Zero cookies passed to agent. Saved ~5 minutes of manual screenshot homework! 🚀",
     ];
 
     steps.forEach((step, i) => {
@@ -46,7 +46,7 @@ export const HeroSection = () => {
         if (i === steps.length - 1) {
           setFetchingState("success");
         }
-      }, (i + 1) * 450);
+      }, (i + 1) * 420);
     });
   };
 
@@ -65,11 +65,11 @@ export const HeroSection = () => {
           transition={{ duration: 0.5 }}
           className="mb-6 flex items-center gap-2"
         >
-          <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-400 backdrop-blur-sm">
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3.5 py-1 text-xs font-medium text-blue-400 backdrop-blur-sm">
             <Sparkles className="h-3.5 w-3.5 text-blue-400" />
-            <span>Introducing ContextPortal v0.1.0</span>
+            <span className="font-semibold">Stop feeding your AI screenshots</span>
             <span className="text-zinc-600">•</span>
-            <span className="text-zinc-300">PyPI Release</span>
+            <span className="text-zinc-300">ContextPortal v0.1.0</span>
           </div>
         </motion.div>
 
@@ -93,10 +93,9 @@ export const HeroSection = () => {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="mt-6 max-w-2xl text-lg sm:text-xl text-zinc-400 leading-relaxed"
         >
-          Give your AI agent a webpage. If it&apos;s protected, ContextPortal handles
-          the messy authentication part.{" "}
-          <span className="text-zinc-200 font-medium">
-            Log in once in your browser. Let your agent read forever.
+          Stop taking screenshots and copy-pasting for your AI.{" "}
+          <span className="text-white font-medium">
+            Authenticate once in your browser. Your agent retrieves protected context continuously.
           </span>
         </motion.p>
 

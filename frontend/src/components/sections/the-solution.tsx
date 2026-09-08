@@ -26,7 +26,7 @@ export const TheSolutionSection = () => {
           There&apos;s a better way.
         </h2>
         <p className="mt-4 text-zinc-400 max-w-2xl mx-auto text-base sm:text-lg">
-          One request. No screenshots. No copy-paste. No site-specific API keys.
+          Authenticate once in your browser. Retrieve context continuously. Zero screenshots. Zero copy-paste.
         </p>
 
         {/* Dynamic Architectural Beam Diagram */}
@@ -80,7 +80,7 @@ export const TheSolutionSection = () => {
                 Tier 1: Public HTTP
               </span>
               <span className="text-[10px] text-zinc-500 font-mono">
-                httpx fast-path (~50ms)
+                Fast HTTP (~150ms)
               </span>
             </div>
 
@@ -96,7 +96,7 @@ export const TheSolutionSection = () => {
                 Tier 2: Authenticated Browser
               </span>
               <span className="text-[10px] text-zinc-500 font-mono">
-                Local Playwright Session
+                Persistent Session (~2.5s)
               </span>
             </div>
           </div>
@@ -159,9 +159,9 @@ export const TheSolutionSection = () => {
         <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto text-left">
           {[
             { title: "One Request", desc: "No complex multi-turn prompting" },
-            { title: "Zero Screenshots", desc: "No vision-token wastage" },
+            { title: "Zero Screenshots", desc: "No vision-token bloat" },
             { title: "Zero Copy-Paste", desc: "Agent reads autonomously" },
-            { title: "No Custom APIs", desc: "Works with any URL in your browser" },
+            { title: "Zero Leaked Cookies", desc: "Sessions stay on local disk" },
           ].map((item, idx) => (
             <div
               key={idx}
@@ -171,6 +171,65 @@ export const TheSolutionSection = () => {
               <p className="text-zinc-500 text-xs mt-1">{item.desc}</p>
             </div>
           ))}
+        </div>
+
+        {/* The Math: 5 Minutes vs 3 Seconds Callout Card */}
+        <div className="mt-16 mx-auto max-w-4xl rounded-2xl border border-blue-500/20 bg-gradient-to-b from-blue-950/20 via-zinc-950/60 to-zinc-950 p-6 sm:p-8 shadow-2xl backdrop-blur-xl text-left">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 mb-6 border-b border-zinc-800/80 gap-4">
+            <div>
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-blue-400">
+                The Productivity Math
+              </span>
+              <h3 className="text-2xl font-extrabold text-white mt-1">
+                5 Minutes of Manual Work vs. ~2.5 Seconds of Retrieval
+              </h3>
+            </div>
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/40 px-3.5 py-1.5 text-xs font-mono text-emerald-400 font-semibold">
+              Save ~50 mins / day
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="rounded-xl border border-red-900/40 bg-red-950/10 p-4">
+              <span className="text-xs font-mono font-semibold text-red-400 uppercase tracking-wide">
+                ❌ The Screenshot Tax (Manual)
+              </span>
+              <ul className="mt-3 space-y-2 text-xs sm:text-sm text-zinc-400">
+                <li className="flex items-start gap-2">
+                  <span className="text-red-400 font-bold shrink-0">•</span>
+                  <span>5-7 minutes of tab hunting, screenshotting, cropping, and pasting</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-red-400 font-bold shrink-0">•</span>
+                  <span>Burns 2,000+ costly vision tokens per screenshot with noisy OCR</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-red-400 font-bold shrink-0">•</span>
+                  <span>Risk of leaking browser bookmarks or personal data in crops</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/15 p-4">
+              <span className="text-xs font-mono font-semibold text-emerald-400 uppercase tracking-wide">
+                ✅ ContextPortal (Autonomous)
+              </span>
+              <ul className="mt-3 space-y-2 text-xs sm:text-sm text-zinc-300">
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 font-bold shrink-0">•</span>
+                  <span>~2.5 seconds automated background browser fetch and clean Markdown</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 font-bold shrink-0">•</span>
+                  <span>Token-optimized ATX Markdown with zero formatting garbage</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 font-bold shrink-0">•</span>
+                  <span>Zero cookies or auth tokens ever passed to the model</span>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </section>

@@ -146,8 +146,8 @@ export const PrivacySection = () => {
 
             <div className="pl-12 pt-2">
               <p className="text-xl font-bold text-white">
-                The agent gets the content.<br />
-                <span className="text-emerald-400">Not your password.</span>
+                Your browser holds the session. Your agent gets the page.<br />
+                <span className="text-emerald-400">Zero cookies leaked.</span>
               </p>
             </div>
           </motion.div>

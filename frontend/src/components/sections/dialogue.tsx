@@ -9,13 +9,13 @@ export const DialogueSection = () => {
     <section className="relative py-24 sm:py-32 border-b border-zinc-900 bg-zinc-950/60 overflow-hidden">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center">
         <Badge variant="glow" className="mb-4">
-          Personality & Experience
+          Core Workflow
         </Badge>
         <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white">
           So… what exactly happens?
         </h2>
         <p className="mt-4 text-zinc-400 max-w-xl mx-auto text-base sm:text-lg">
-          Here is how ContextPortal talks to you and your agent in the wild.
+          Authenticate once in your browser. Retrieve context continuously without interrupting your day.
         </p>
 
         <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
@@ -104,21 +104,21 @@ export const DialogueSection = () => {
                 <div className="flex items-start gap-3">
                   <span className="text-purple-400 font-semibold shrink-0">◉ Portal:</span>
                   <span className="text-emerald-400">
-                    &quot;Reused saved session. Extracted 8,400 tokens in 650ms.&quot; ✅
+                    &quot;Reused saved session. Extracted 8,400 tokens in 2.8s.&quot; ✅
                   </span>
                 </div>
 
                 <div className="flex items-start gap-3">
                   <span className="text-blue-400 font-semibold shrink-0">🤖 Agent:</span>
                   <span className="text-zinc-400">
-                    &quot;...Wait, that was ridiculously fast.&quot;
+                    &quot;...Wait, you fetched that without asking me for screenshots?&quot;
                   </span>
                 </div>
 
                 <div className="flex items-start gap-3">
                   <span className="text-purple-400 font-semibold shrink-0">◉ Portal:</span>
                   <span className="text-zinc-300">
-                    &quot;I know.&quot; 😌
+                    &quot;That&apos;s the whole point.&quot; 😌
                   </span>
                 </div>
               </div>

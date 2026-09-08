@@ -54,13 +54,13 @@ export const ThePainSection = () => {
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <Badge variant="destructive" className="mb-4">
-            The Reality Today
+            The Screenshot Tax
           </Badge>
           <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white">
             Without ContextPortal
           </h2>
           <p className="mt-4 text-zinc-400 max-w-xl mx-auto text-base sm:text-lg">
-            Every time your AI agent needs a protected page, you become its unpaid intern.
+            Every time your AI agent hits a login wall, you become its unpaid screenshot intern.
           </p>
         </div>
 
@@ -116,8 +116,8 @@ export const ThePainSection = () => {
             <h3 className="text-2xl sm:text-4xl font-extrabold text-white">
               Why are we still doing this in 2026?
             </h3>
-            <p className="mt-2 text-zinc-400 text-sm max-w-md mx-auto">
-              Copy-pasting screenshots into an AI window is not an agent architecture.
+            <p className="mt-2 text-zinc-300 text-sm max-w-lg mx-auto font-medium">
+              Stop feeding your AI screenshots. Copy-pasting is not an agent architecture.
             </p>
           </div>
         </motion.div>

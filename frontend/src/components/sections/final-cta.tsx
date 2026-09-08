@@ -37,14 +37,14 @@ export const FinalCtaSection = () => {
           </div>
 
           <h2 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight">
-            Stop copy-pasting web pages <br />
+            Stop feeding your AI screenshots. <br />
             <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
-              into your AI.
+              Authenticate once. Read continuously.
             </span>
           </h2>
 
           <p className="mt-6 text-lg sm:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-            Install ContextPortal and let your agent fetch the context itself.
+            Give your agent a retrieval tool, not a browser to operate. Install ContextPortal in under 2 minutes.
           </p>
         </motion.div>
 
@@ -132,8 +132,8 @@ export const FinalCtaSection = () => {
         </motion.div>
 
         {/* Closing Tagline */}
-        <p className="mt-16 font-mono text-xs sm:text-sm text-zinc-500 uppercase tracking-widest">
-          Log in once. Let your agent read.
+        <p className="mt-16 font-mono text-xs sm:text-sm text-zinc-400 uppercase tracking-widest text-center">
+          Authenticate once. Retrieve context continuously. Zero cookies leaked.
         </p>
       </div>
     </section>

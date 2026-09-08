@@ -6,8 +6,15 @@ Your AI agent can fetch any public webpage. But the moment it hits a login wall 
 
 ContextPortal sits between your AI agent and the web. When the agent needs a protected page, ContextPortal uses *your* existing browser session to grab it, strips out all the noise, and hands back clean Markdown. The agent gets context. It never gets your cookies.
 
-> 🍪 *Agent: "Can I have your cookies?"*  
-> 🚫 *ContextPortal: "No. Here's the page."*
+> 🤖 **Agent:** *"I can't read this ticket. It's behind an SSO login wall. Please take 5 screenshots."*  
+> 👤 **You:** *"No way. Why am I doing homework for an AI?"*  
+> 🔑 **ContextPortal:** *"Say less. Log in once in your browser; your agent retrieves the page forever."*
+
+### 🏛️ The 4 Pillars
+- 🛑 **Stop feeding your AI screenshots.** Copy-paste is not an agent architecture.
+- 🔁 **Authenticate once. Retrieve context continuously.** Log in once; your agent reads forever.
+- 🔐 **Your browser holds the session. Your agent gets the page. Zero cookies leaked.**
+- 🎯 **Give your agent a retrieval tool, not a browser to operate.** Clean Markdown, zero DOM fragility.
 
 ## Install
 

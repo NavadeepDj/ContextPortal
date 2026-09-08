@@ -16,41 +16,86 @@ ContextPortal sits between your AI agent and the web. When the agent needs a pro
 - 🔐 **Your browser holds the session. Your agent gets the page. Zero cookies leaked.**
 - 🎯 **Give your agent a retrieval tool, not a browser to operate.** Clean Markdown, zero DOM fragility.
 
-## Install
+## 🔌 Connect ContextPortal to your AI
+
+ContextPortal works through the Model Context Protocol (MCP) and configures supported AI clients automatically.
+
+```text
+┌──────────────────────────────────────────────┐
+│  Connect your agent                          │
+│                                              │
+│  $ contextportal setup                       │
+│                                              │
+│  ✓ MCP server                                │
+│  ✓ Browser profile                           │
+│  ✓ AI client                                 │
+│                                              │
+│  Ready.                                      │
+└──────────────────────────────────────────────┘
+```
+
+Onboarding shouldn't feel like wrestling with JSON files and virtual environments.  
+It's three steps: **Install ContextPortal → Connect your agent → Give it the URL.**
+
+---
+
+### Step 1: Install ContextPortal
 
 ```bash
 uv tool install contextportal
 ```
 
-## 🪄 Quick Setup (Auto-Config)
+---
 
-Configure your AI agent (Claude Desktop, Cursor, Antigravity) with a single command:
+### Step 2: Connect your AI agent
 
 ```bash
 contextportal setup
 ```
 
-Verify your environment anytime:
+That's it! ContextPortal scans your system, detects installed AI agent clients, creates a safety backup, and registers the MCP server automatically.
 
-```bash
-contextportal doctor
-```
+> 🩺 Run `contextportal doctor` anytime to audit your system health and client connections.
 
-## 🔐 Log In (Once)
+---
 
-Log into your private sites in your local browser — your session is saved automatically:
+### 🤖 Supported AI Clients
+
+ContextPortal provides zero-friction automatic setup for major AI developer tools, plus a standard manual fallback:
+
+| AI Client | Platform | Automatic Setup | Manual Config Path |
+| :--- | :--- | :--- | :--- |
+| **Cursor** | Win / Mac / Linux | `contextportal setup --client cursor` | `~/.cursor/mcp.json` |
+| **Google Antigravity** | Win / Mac / Linux | `contextportal setup --client antigravity` | `~/.gemini/antigravity/mcp_config.json` |
+| **Claude Desktop** | Win / Mac / Linux | `contextportal setup --client claude` | `%APPDATA%\Claude\` or `~/Library/Application Support/Claude/` |
+| **VS Code (Cline / Roo / Copilot)** | Universal | Built-in MCP settings | `.vscode/mcp.json` or Extension settings |
+| **Any Custom MCP Client** | Universal | STDIO transport | Standard JSON payload |
+
+---
+
+### Step 3: Log into your private sites (once)
 
 ```bash
 contextportal login
 ```
 
-Test it directly:
+A clean browser opens. Log into your private tools — Jira, Confluence, internal wikis, GitHub enterprise, Handshake. Close the window when you're done. Your session stays locally on your machine.
 
-```bash
-contextportal fetch https://your-protected-site.com/docs
-```
+---
 
-## 🔌 Manual MCP Configuration (Optional)
+### 🎉 You're ready. Now just give your agent the URL.
+
+In your AI chat (Cursor, Claude, Antigravity, etc.):
+
+> *"Summarize the roadmap at https://internal.company.com/q3-roadmap"*
+
+Your agent calls ContextPortal → ContextPortal retrieves the page through your authenticated session → clean, token-optimized Markdown comes back.
+
+**No screenshots. No copy-pasting. You're done.**
+
+---
+
+### 🛠️ Manual Configuration Fallback (Optional)
 
 If you prefer to configure manually:
 

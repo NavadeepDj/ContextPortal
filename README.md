@@ -52,11 +52,30 @@
 
 ---
 
-## ⚡ Quickstart
+## 🔌 Connect ContextPortal to your AI
 
-Three steps. Under two minutes.
+ContextPortal works through the Model Context Protocol (MCP) and configures supported AI clients automatically.
 
-### 1. Install
+```text
+┌──────────────────────────────────────────────┐
+│  Connect your agent                          │
+│                                              │
+│  $ contextportal setup                       │
+│                                              │
+│  ✓ MCP server                                │
+│  ✓ Browser profile                           │
+│  ✓ AI client                                 │
+│                                              │
+│  Ready.                                      │
+└──────────────────────────────────────────────┘
+```
+
+Onboarding shouldn't feel like wrestling with JSON files and virtual environments.  
+It's three steps: **Install ContextPortal → Connect your agent → Give it the URL.**
+
+---
+
+### Step 1: Install ContextPortal
 
 ```bash
 uv tool install contextportal
@@ -64,32 +83,36 @@ uv tool install contextportal
 
 > Don't have `uv`? → `pip install contextportal` works too.
 
-### 2. Auto-configure your AI agent
+---
+
+### Step 2: Connect your AI agent
+
 ```bash
 contextportal setup
 ```
 
-That's it! ContextPortal automatically detects **Claude Desktop**, **Cursor**, and **Antigravity IDE**, and safely registers the MCP server for you. No manual JSON editing required.
+That's it! ContextPortal scans your system, detects installed AI agent clients, creates a safety backup, and registers the MCP server automatically.
 
-> Run `contextportal doctor` anytime to check your system and MCP connection status.
+> 🩺 Run `contextportal doctor` anytime to audit your system health and client connections.
 
-### 3. Log into your private sites
+---
 
-```bash
-contextportal login
-```
+### 🤖 Supported AI Clients
 
-A Chrome window opens. Log into whatever private sites you want your agent to access — Jira, Confluence, internal wikis, Handshake, enterprise dashboards. Close the window when you're done. Your session lives locally on your machine and never leaves your computer.
+ContextPortal provides zero-friction automatic setup for major AI developer tools, plus a standard manual fallback:
 
-### 4. Ask your agent anything
+| AI Client | Platform | Automatic Setup | Manual Config Path |
+| :--- | :--- | :--- | :--- |
+| **Cursor** | Win / Mac / Linux | `contextportal setup --client cursor` | `~/.cursor/mcp.json` |
+| **Google Antigravity** | Win / Mac / Linux | `contextportal setup --client antigravity` | `~/.gemini/antigravity/mcp_config.json` |
+| **Claude Desktop** | Win / Mac / Linux | `contextportal setup --client claude` | `%APPDATA%\Claude\` or `~/Library/Application Support/Claude/` |
+| **VS Code (Cline / Roo / Copilot)** | Universal | Built-in MCP settings | `.vscode/mcp.json` or Extension settings |
+| **Any Custom MCP Client** | Universal | STDIO transport | Standard JSON payload |
 
-> *"Summarize the roadmap at https://internal.company.com/q3-roadmap"*
+<details>
+<summary><b>🛠️ Manual Configuration Fallback (Click to expand)</b></summary>
 
-Your agent calls ContextPortal → ContextPortal retrieves the page through your authenticated session → clean, LLM-ready Markdown comes back.
-
-### Manual Configuration (Optional)
-
-If you prefer to configure your agent manually:
+If you prefer to configure your agent manually, add this to your client's MCP configuration:
 
 ```json
 {
@@ -101,8 +124,29 @@ If you prefer to configure your agent manually:
   }
 }
 ```
+</details>
 
-**You're done. Go build something cool.**
+---
+
+### Step 3: Log into your private sites (once)
+
+```bash
+contextportal login
+```
+
+A clean browser opens. Log into your private tools — Jira, Confluence, internal wikis, GitHub enterprise, Handshake. Close the window when you're done. Your session stays locally on your machine.
+
+---
+
+### 🎉 You're ready. Now just give your agent the URL.
+
+In your AI chat (Cursor, Claude, Antigravity, etc.):
+
+> *"Summarize the roadmap at https://internal.company.com/q3-roadmap"*
+
+Your agent calls ContextPortal → ContextPortal retrieves the page through your authenticated session → clean, token-optimized Markdown comes back.
+
+**No screenshots. No copy-pasting. You're done.**
 
 ---
 

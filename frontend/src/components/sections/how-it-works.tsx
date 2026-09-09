@@ -11,8 +11,11 @@ export const HowItWorksSection = () => {
     {
       step: "01",
       icon: Link2,
+      title: "Give it a URL",
       title: "Connect your agent",
       description:
+        "Your AI agent asks ContextPortal for a webpage via standard Model Context Protocol (MCP) using the fetch_context tool.",
+      tag: "Agent-initiated",
         "Run `contextportal setup`. It auto-detects Cursor, Antigravity, or Claude Desktop and registers the MCP server for you. Zero JSON editing.",
       tag: "Automatic Setup",
       color: "from-blue-500 to-indigo-500",
@@ -20,8 +23,11 @@ export const HowItWorksSection = () => {
     {
       step: "02",
       icon: KeyRound,
+      title: "Authenticate once",
       title: "Log in once",
       description:
+        "When a protected site needs credentials, your local browser lets you log in via SSO or MFA once. Cookies never leave your disk.",
+      tag: "Human in the loop",
         "Run `contextportal login`. Log into your private sites (Jira, Confluence, SSO) in your browser once. Your session stays on your disk.",
       tag: "1-Time Human Auth",
       color: "from-indigo-500 to-purple-500",
@@ -29,8 +35,11 @@ export const HowItWorksSection = () => {
     {
       step: "03",
       icon: FastForward,
+      title: "Keep moving",
       title: "Give your agent the URL",
       description:
+        "ContextPortal reuses the persistent local session and automatically returns clean, stripped Markdown directly into agent context.",
+      tag: "Autonomous flow",
         "You're ready. Just paste any protected URL in your AI chat. ContextPortal retrieves the clean Markdown context autonomously.",
       tag: "Autonomous Flow",
       color: "from-purple-500 to-emerald-500",
@@ -47,6 +56,7 @@ export const HowItWorksSection = () => {
           How ContextPortal Works
         </h2>
         <p className="mt-4 text-zinc-400 max-w-2xl mx-auto text-base sm:text-lg">
+          You deal with the website. Your agent deals with the answer.
           Install ContextPortal → Connect your agent → You&apos;re ready. <br className="hidden sm:inline" />
           <span className="text-white font-medium">Now just give your agent the URL.</span>
         </p>

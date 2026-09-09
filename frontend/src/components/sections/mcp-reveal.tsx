@@ -155,11 +155,6 @@ print(result.method)        # "browser"`;
             </div>
 
             {/* Supported Clients */}
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur-sm">
-              <h4 className="text-sm font-semibold text-zinc-300 mb-4">
-                Works with every MCP client
-              </h4>
-              <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 backdrop-blur-sm">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 font-mono">
@@ -169,10 +164,6 @@ print(result.method)        # "browser"`;
               </div>
               <div className="grid grid-cols-2 gap-2.5">
                 {[
-                  { name: "Claude Desktop", color: "text-amber-400" },
-                  { name: "Cursor", color: "text-blue-400" },
-                  { name: "Google Antigravity", color: "text-purple-400" },
-                  { name: "VS Code + Extensions", color: "text-emerald-400" },
                   { name: "Cursor", color: "text-blue-400", path: "Auto-detected" },
                   { name: "Google Antigravity", color: "text-purple-400", path: "Auto-detected" },
                   { name: "Claude Desktop", color: "text-amber-400", path: "Auto-detected" },
@@ -180,12 +171,8 @@ print(result.method)        # "browser"`;
                 ].map((client, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950/60 p-2.5"
                     className="flex flex-col rounded-lg border border-zinc-800/80 bg-zinc-950/60 p-2.5"
                   >
-                    <Bot className={`h-4 w-4 ${client.color}`} />
-                    <span className="text-xs font-medium text-zinc-300">
-                      {client.name}
                     <div className="flex items-center gap-1.5 mb-1">
                       <Bot className={`h-3.5 w-3.5 ${client.color}`} />
                       <span className="text-xs font-medium text-zinc-200">
@@ -200,16 +187,11 @@ print(result.method)        # "browser"`;
               </div>
             </div>
 
-            {/* MCP Config Snippet */}
-            <div className="rounded-xl border border-zinc-800 bg-[#0c0c0f] p-5">
-              <p className="text-xs font-mono text-zinc-500 mb-3">
-                // Add to your MCP client config:
             {/* Manual Fallback Config */}
             <div className="rounded-xl border border-zinc-800/80 bg-[#0c0c0f] p-4">
               <p className="text-[11px] font-mono text-zinc-500 mb-2">
                 // Manual Fallback: Standard MCP client config
               </p>
-              <pre className="text-xs font-mono text-zinc-300 leading-relaxed">
               <pre className="text-[11px] font-mono text-zinc-400 leading-relaxed">
 {`{
   "mcpServers": {

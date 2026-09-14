@@ -1,5 +1,5 @@
-import pytest
-from app.core.doctor import check_cli_in_path, check_browser_profile, check_clients_status
+from app.core.doctor import check_browser_profile, check_clients_status
+
 
 def test_check_browser_profile():
     profile = check_browser_profile()
@@ -8,6 +8,7 @@ def test_check_browser_profile():
     assert "writable" in profile
     assert profile["writable"] is True
 
+
 def test_check_clients_status():
     statuses = check_clients_status()
     assert len(statuses) >= 3
@@ -15,4 +16,3 @@ def test_check_clients_status():
     assert "claude" in client_names
     assert "cursor" in client_names
     assert "antigravity" in client_names
-

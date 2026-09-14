@@ -20,9 +20,7 @@ def get_current_version() -> str:
         return __version__
 
 
-def get_latest_version(
-    pypi_url: str = PYPI_URL, timeout: float = 5.0
-) -> str | None:
+def get_latest_version(pypi_url: str = PYPI_URL, timeout: float = 5.0) -> str | None:
     """Fetches the latest published ContextPortal version from PyPI."""
     try:
         response = httpx.get(pypi_url, timeout=timeout)

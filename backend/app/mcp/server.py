@@ -1,11 +1,11 @@
-import asyncio
 from mcp.server.mcpserver import MCPServer
-import mcp.types as types
-from app.core.security import validate_url_policy
+
 from app.core.retriever import get_context
+from app.core.security import validate_url_policy
 
 # Initialize the MCP Server
 mcp = MCPServer("ContextPortal")
+
 
 @mcp.tool()
 async def fetch_context(url: str) -> str:
@@ -14,7 +14,7 @@ async def fetch_context(url: str) -> str:
     """
     if not url:
         raise ValueError("url is required")
-        
+
     try:
         # Enforce security policy before any retrieval
         validate_url_policy(url)
@@ -23,13 +23,13 @@ async def fetch_context(url: str) -> str:
         # Returning a string prefixed with 'Error:' is a common pattern for LLMs
         # when we can't directly override the is_error flag in the high-level API.
         return f"Error: {str(e)}"
-        
+
     # Delegate entirely to the retrieval orchestrator
     try:
         result = await get_context(url)
         if not result:
             return "Error: Could not retrieve content from the URL. The page might be empty, heavily obfuscated, or the auth session may have expired."
-            
+
         formatted_response = (
             f"# {result.title or 'Untitled Document'}\n"
             f"**Source URL**: {result.url}\n"
@@ -41,10 +41,12 @@ async def fetch_context(url: str) -> str:
     except Exception as e:
         return f"Error retrieving context: {str(e)}"
 
-def main():
+
+def main() -> None:
     """Run the MCP server over STDIO transport."""
     # MCPServer provides a synchronous run method that handles asyncio internally
     mcp.run()
+
 
 if __name__ == "__main__":
     main()

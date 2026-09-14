@@ -3,30 +3,31 @@ from fastapi.responses import PlainTextResponse
 from pydantic import HttpUrl
 
 from app.config import settings
-from app.redis import check_redis_connection
 from app.core.retriever import get_context
+from app.redis import check_redis_connection
 
 app = FastAPI(title=settings.app_name)
 
+
 @app.get("/health")
-async def health_check():
+async def health_check() -> dict[str, str]:
     redis_connected = await check_redis_connection()
-    return {
-        "status": "ok",
-        "redis": "connected" if redis_connected else "disconnected"
-    }
+    return {"status": "ok", "redis": "connected" if redis_connected else "disconnected"}
+
 
 @app.get("/c", response_class=PlainTextResponse)
-async def fetch_context(url: HttpUrl):
+async def fetch_context(url: HttpUrl) -> str:
     """
-    MVP Endpoint: Agent requests a URL. 
+    MVP Endpoint: Agent requests a URL.
     ContextPortal retrieves it (publicly or via authorized browser session)
     and returns clean Markdown.
     """
     try:
         result = await get_context(str(url))
         if not result:
-            raise HTTPException(status_code=404, detail="Content could not be retrieved")
+            raise HTTPException(
+                status_code=404, detail="Content could not be retrieved"
+            )
         return result.content
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

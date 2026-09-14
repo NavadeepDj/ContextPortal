@@ -4,7 +4,8 @@ import platform
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any
+
 
 @dataclass
 class ClientConfig:
@@ -13,44 +14,81 @@ class ClientConfig:
     config_path: Path
     key_name: str = "mcpServers"
 
-def get_supported_clients() -> List[ClientConfig]:
+
+def get_supported_clients() -> list[ClientConfig]:
     """Returns the list of supported AI agent clients and their default config locations."""
     system = platform.system()
     home = Path.home()
-    clients: List[ClientConfig] = []
+    clients: list[ClientConfig] = []
 
     # 1. Claude Desktop
     if system == "Windows":
-        claude_path = Path(os.environ.get("APPDATA", str(home / "AppData" / "Roaming"))) / "Claude" / "claude_desktop_config.json"
+        claude_path = (
+            Path(os.environ.get("APPDATA", str(home / "AppData" / "Roaming")))
+            / "Claude"
+            / "claude_desktop_config.json"
+        )
     elif system == "Darwin":
-        claude_path = home / "Library" / "Application Support" / "Claude" / "claude_desktop_config.json"
+        claude_path = (
+            home
+            / "Library"
+            / "Application Support"
+            / "Claude"
+            / "claude_desktop_config.json"
+        )
     else:
         claude_path = home / ".config" / "Claude" / "claude_desktop_config.json"
-    
-    clients.append(ClientConfig(name="claude", display_name="Claude Desktop", config_path=claude_path))
 
-    # 2. Cursor
-    cursor_path = home / ".cursor" / "mcp.json"
-    clients.append(ClientConfig(name="cursor", display_name="Cursor", config_path=cursor_path))
+    clients.append(
+        ClientConfig(
+            name="claude", display_name="Claude Desktop", config_path=claude_path
+        )
+    )
+
+    # 2. Cursor IDE
+    if system == "Windows":
+        cursor_path = (
+            Path(os.environ.get("APPDATA", str(home / "AppData" / "Roaming")))
+            / "Cursor"
+            / "mcp.json"
+        )
+    elif system == "Darwin":
+        cursor_path = home / "Library" / "Application Support" / "Cursor" / "mcp.json"
+    else:
+        cursor_path = home / ".config" / "Cursor" / "mcp.json"
+    clients.append(
+        ClientConfig(name="cursor", display_name="Cursor IDE", config_path=cursor_path)
+    )
 
     # 3. Google Antigravity IDE
     antigravity_path = home / ".gemini" / "antigravity" / "mcp_config.json"
-    clients.append(ClientConfig(name="antigravity", display_name="Antigravity IDE", config_path=antigravity_path))
+    clients.append(
+        ClientConfig(
+            name="antigravity",
+            display_name="Antigravity IDE",
+            config_path=antigravity_path,
+        )
+    )
 
     return clients
 
-def get_contextportal_mcp_entry() -> Dict[str, any]:
+
+def get_contextportal_mcp_entry() -> dict[str, Any]:
     """Returns the standardized MCP server configuration entry for ContextPortal."""
-    return {
-        "command": "contextportal",
-        "args": ["mcp"]
-    }
+    return {"command": "contextportal", "args": ["mcp"]}
+
 
 def is_client_detected(client: ClientConfig) -> bool:
     """Returns True if the client's config file or parent directory exists on the system."""
     return client.config_path.exists() or client.config_path.parent.exists()
 
-def inject_mcp_config(config_path: Path, key_name: str = "mcpServers", dry_run: bool = False, force: bool = False) -> Tuple[bool, str]:
+
+def inject_mcp_config(
+    config_path: Path,
+    key_name: str = "mcpServers",
+    dry_run: bool = False,
+    force: bool = False,
+) -> tuple[bool, str]:
     """
     Safely injects ContextPortal into the given client's configuration file.
     Creates parent directories and a .bak backup file if modified.
@@ -64,12 +102,12 @@ def inject_mcp_config(config_path: Path, key_name: str = "mcpServers", dry_run: 
         return True, "Skipped (Client not installed on this system)"
 
     try:
-        data: Dict[str, any] = {}
+        data: dict[str, Any] = {}
         file_exists = config_path.exists()
 
         if file_exists:
             try:
-                with open(config_path, "r", encoding="utf-8") as f:
+                with open(config_path, encoding="utf-8") as f:
                     content = f.read().strip()
                     if content:
                         data = json.loads(content)
@@ -112,4 +150,3 @@ def inject_mcp_config(config_path: Path, key_name: str = "mcpServers", dry_run: 
 
     except Exception as e:
         return False, f"Error updating {config_path}: {e}"
-

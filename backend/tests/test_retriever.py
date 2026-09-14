@@ -1,6 +1,14 @@
+from unittest.mock import MagicMock, PropertyMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock, PropertyMock
-from app.core.retriever import extract_markdown, fetch_public, get_context, fetch_authenticated, ContextResult
+
+from app.core.retriever import (
+    ContextResult,
+    extract_markdown,
+    fetch_authenticated,
+    fetch_public,
+    get_context,
+)
 
 
 @pytest.mark.asyncio
@@ -117,7 +125,14 @@ async def test_fetch_public_exception(mock_get):
 @patch("app.core.retriever.fetch_authenticated")
 async def test_get_context_public_branch(mock_fetch_auth, mock_fetch_public):
     from app.core.retriever import ContextResult
-    mock_fetch_public.return_value = ContextResult(url="https://example.com", title=None, content="# Public Markdown", retrieval_method="http", authenticated=False)
+
+    mock_fetch_public.return_value = ContextResult(
+        url="https://example.com",
+        title=None,
+        content="# Public Markdown",
+        retrieval_method="http",
+        authenticated=False,
+    )
 
     result = await get_context("https://example.com")
     assert result.content == "# Public Markdown"
@@ -128,9 +143,17 @@ async def test_get_context_public_branch(mock_fetch_auth, mock_fetch_public):
 @pytest.mark.asyncio
 @patch("app.core.retriever.fetch_public")
 @patch("app.core.retriever.fetch_authenticated")
-async def test_get_context_fallback_to_authenticated(mock_fetch_auth, mock_fetch_public):
+async def test_get_context_fallback_to_authenticated(
+    mock_fetch_auth, mock_fetch_public
+):
     mock_fetch_public.return_value = None
-    mock_fetch_auth.return_value = ContextResult(url="https://example.com/protected", title=None, content="# Authenticated Context", retrieval_method="browser", authenticated=True)
+    mock_fetch_auth.return_value = ContextResult(
+        url="https://example.com/protected",
+        title=None,
+        content="# Authenticated Context",
+        retrieval_method="browser",
+        authenticated=True,
+    )
 
     result = await get_context("https://example.com/protected")
     assert result.content == "# Authenticated Context"
@@ -141,7 +164,13 @@ async def test_get_context_fallback_to_authenticated(mock_fetch_auth, mock_fetch
 @pytest.mark.asyncio
 @patch("app.core.retriever._fetch_authenticated_sync")
 async def test_fetch_authenticated_thread_delegation(mock_sync_fetch):
-    mock_sync_fetch.return_value = ContextResult(url="https://example.com/protected", title=None, content="# Auth Markdown", retrieval_method="browser", authenticated=True)
+    mock_sync_fetch.return_value = ContextResult(
+        url="https://example.com/protected",
+        title=None,
+        content="# Auth Markdown",
+        retrieval_method="browser",
+        authenticated=True,
+    )
     result = await fetch_authenticated("https://example.com/protected")
     assert result.content == "# Auth Markdown"
     mock_sync_fetch.assert_called_once_with("https://example.com/protected")
@@ -162,7 +191,9 @@ def test_fetch_authenticated_sync_already_authenticated(mock_sync_playwright):
     # Not a login page — URL is the target domain, no auth indicators
     mock_page.url = "https://example.com/dashboard"
     mock_page.evaluate.return_value = False
-    mock_page.content.return_value = "<html><body><h1>Dashboard</h1><p>Authorized user info</p></body></html>"
+    mock_page.content.return_value = (
+        "<html><body><h1>Dashboard</h1><p>Authorized user info</p></body></html>"
+    )
 
     result = _fetch_authenticated_sync("https://example.com/dashboard")
 
@@ -186,7 +217,9 @@ def test_fetch_authenticated_sync_with_login_flow(mock_sync_playwright, mock_tim
 
     # Initially lands on a login/auth page
     mock_page.evaluate.return_value = True
-    mock_page.content.return_value = "<html><body><h1>Protected Course</h1><p>Welcome student!</p></body></html>"
+    mock_page.content.return_value = (
+        "<html><body><h1>Protected Course</h1><p>Welcome student!</p></body></html>"
+    )
 
     # Simulate: first poll still on auth page, second poll back on target
     mock_page.url = "https://app.joinhandshake.com/access?auth=true"
@@ -194,9 +227,14 @@ def test_fetch_authenticated_sync_with_login_flow(mock_sync_playwright, mock_tim
         "https://app.joinhandshake.com/access?auth=true",  # 1st poll — still on auth
         "https://project-dynamo.learn.joinhandshake.com/introduction",  # 2nd poll — landed!
     ]
-    type(mock_page).url = PropertyMock(side_effect=url_sequence + ["https://project-dynamo.learn.joinhandshake.com/introduction"] * 10)
+    type(mock_page).url = PropertyMock(
+        side_effect=url_sequence
+        + ["https://project-dynamo.learn.joinhandshake.com/introduction"] * 10
+    )
 
-    result = _fetch_authenticated_sync("https://project-dynamo.learn.joinhandshake.com/introduction")
+    result = _fetch_authenticated_sync(
+        "https://project-dynamo.learn.joinhandshake.com/introduction"
+    )
 
     assert "# Protected Course" in result.content
     assert "Welcome student!" in result.content
@@ -221,9 +259,8 @@ def test_fetch_authenticated_sync_timeout_raises_error(mock_sync_playwright, moc
     mock_page.url = "https://app.joinhandshake.com/access?auth=true"
 
     with pytest.raises(RuntimeError, match="Authentication timed out"):
-        _fetch_authenticated_sync("https://project-dynamo.learn.joinhandshake.com/introduction")
+        _fetch_authenticated_sync(
+            "https://project-dynamo.learn.joinhandshake.com/introduction"
+        )
 
     mock_browser_context.close.assert_called_once()
-
-
-

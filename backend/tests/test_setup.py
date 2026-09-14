@@ -1,7 +1,11 @@
 import json
-import pytest
-from pathlib import Path
-from app.core.setup import inject_mcp_config, get_supported_clients, get_contextportal_mcp_entry
+
+from app.core.setup import (
+    get_contextportal_mcp_entry,
+    get_supported_clients,
+    inject_mcp_config,
+)
+
 
 def test_get_supported_clients():
     clients = get_supported_clients()
@@ -10,9 +14,10 @@ def test_get_supported_clients():
     assert "cursor" in names
     assert "antigravity" in names
 
+
 def test_inject_mcp_config_fresh_file(tmp_path):
     config_file = tmp_path / "test_client" / "config.json"
-    
+
     # Without force and parent non-existent, should skip
     success_skip, msg_skip = inject_mcp_config(config_file, force=False)
     assert success_skip is True
@@ -24,22 +29,18 @@ def test_inject_mcp_config_fresh_file(tmp_path):
     assert success is True
     assert config_file.exists()
 
-    with open(config_file, "r", encoding="utf-8") as f:
+    with open(config_file, encoding="utf-8") as f:
         data = json.load(f)
 
     assert "mcpServers" in data
     assert "context-portal" in data["mcpServers"]
     assert data["mcpServers"]["context-portal"] == get_contextportal_mcp_entry()
 
+
 def test_inject_mcp_config_preserves_existing_servers(tmp_path):
     config_file = tmp_path / "config.json"
     initial_data = {
-        "mcpServers": {
-            "custom-tool": {
-                "command": "custom",
-                "args": ["serve"]
-            }
-        }
+        "mcpServers": {"custom-tool": {"command": "custom", "args": ["serve"]}}
     }
     with open(config_file, "w", encoding="utf-8") as f:
         json.dump(initial_data, f)
@@ -51,7 +52,7 @@ def test_inject_mcp_config_preserves_existing_servers(tmp_path):
     backup_file = config_file.with_suffix(".json.bak")
     assert backup_file.exists()
 
-    with open(config_file, "r", encoding="utf-8") as f:
+    with open(config_file, encoding="utf-8") as f:
         data = json.load(f)
 
     # Both servers must exist
@@ -59,10 +60,11 @@ def test_inject_mcp_config_preserves_existing_servers(tmp_path):
     assert "context-portal" in data["mcpServers"]
     assert data["mcpServers"]["custom-tool"]["command"] == "custom"
 
+
 def test_inject_mcp_config_idempotent(tmp_path):
     config_file = tmp_path / "config.json"
     config_file.touch()
-    
+
     # First injection
     success1, msg1 = inject_mcp_config(config_file)
     assert success1 is True
@@ -73,12 +75,12 @@ def test_inject_mcp_config_idempotent(tmp_path):
     assert success2 is True
     assert "Already configured" in msg2
 
+
 def test_inject_mcp_config_dry_run(tmp_path):
     # If parent exists, dry run previews
     config_file = tmp_path / "preview.json"
-    
+
     success, msg = inject_mcp_config(config_file, dry_run=True)
     assert success is True
     assert "[Dry Run]" in msg
     assert not config_file.exists()
-

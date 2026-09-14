@@ -108,6 +108,11 @@ def run_setup(client_filter: str = "all", dry_run: bool = False) -> None:
         print("Run 'contextportal doctor' anytime to verify your environment.")
     print("=" * 60 + "\n")
 
+def run_update(check_only: bool = False) -> None:
+    """Check for updates from PyPI and upgrade ContextPortal."""
+    from app.core.updater import run_update as do_update
+    do_update(check_only=check_only)
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="ContextPortal — The authenticated fetch layer for AI agents."
@@ -126,8 +131,16 @@ def main() -> None:
         help="Open a browser to manually authenticate and save your session."
     )
     login_parser.add_argument(
+        "url",
+        nargs="?",
+        default=None,
+        help="Optional starting URL to open for login (e.g., https://github.com/login)."
+    )
+    login_parser.add_argument(
         "--url", 
+        dest="url_flag",
         type=str, 
+        default=None,
         help="Optional starting URL to open for login (e.g., https://github.com/login)."
     )
     
@@ -168,13 +181,24 @@ def main() -> None:
         "status",
         help="Alias for 'doctor'."
     )
+
+    # Update Command (Release 0.3)
+    update_parser = subparsers.add_parser(
+        "update",
+        help="Check for updates from PyPI and upgrade ContextPortal."
+    )
+    update_parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Check if an update is available without installing it."
+    )
     
     args = parser.parse_args()
     
     if args.command == "mcp":
         run_mcp()
     elif args.command == "login":
-        run_login(args.url)
+        run_login(args.url_flag or args.url)
     elif args.command == "fetch":
         run_fetch(args.url)
     elif args.command == "setup":
@@ -182,6 +206,8 @@ def main() -> None:
     elif args.command in ("doctor", "status"):
         from app.core.doctor import run_doctor
         run_doctor()
+    elif args.command == "update":
+        run_update(check_only=args.check)
 
 if __name__ == "__main__":
     main()

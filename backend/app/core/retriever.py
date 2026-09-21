@@ -122,6 +122,7 @@ def _fetch_authenticated_sync(url: str) -> ContextResult:
             user_data_dir,
             headless=False,
             channel="chrome",
+            args=["--disable-blink-features=AutomationControlled"],
             viewport={"width": 1280, "height": 800},
         )
 

@@ -22,16 +22,19 @@ def run_login(start_url: str | None = None) -> None:
     print(f"Using persistent profile at: {profile_dir}")
     print("A browser window will now open.")
     print("1. Navigate to the websites you want your AI agent to access.")
-    print("2. Log in manually (solve captchas, use SSO, etc.).")
+    print("2. Log in manually (Google Sign-In, SSO, username/password, etc.).")
     print("3. Close the browser window when you are finished.")
     print("\nLaunching browser...\n")
 
     with sync_playwright() as p:
-        # We launch headful (headless=False) so the user can interact
+        # Use real Chrome. --disable-blink-features=AutomationControlled suppresses
+        # the automation banner so Google Sign-In and similar OAuth providers work
+        # normally. This is not stealth/evasion — the user still authenticates
+        # legitimately; we are only reducing Playwright-specific UX friction.
         browser_context = p.chromium.launch_persistent_context(
             user_data_dir=str(profile_dir),
             headless=False,
-            channel="chrome",  # ADR-003: Transparent automation
+            channel="chrome",
             args=["--disable-blink-features=AutomationControlled"],
         )
 

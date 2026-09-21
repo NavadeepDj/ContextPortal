@@ -98,9 +98,12 @@ Never:
 - expose credentials
 - reuse another user's session
 - expose another user's context
-- **hide automation flags (e.g., spoofing User-Agent, disabling `AutomationControlled`, hiding `navigator.webdriver`)**
+- spoof User-Agent strings
+- add fingerprint evasion or anti-bot bypass beyond what ADR-003 explicitly permits
 
-If a requested behavior requires bypassing a security mechanism or making the browser "stealthy" to evade detection, stop and explicitly reject it. ContextPortal operates transparently within legitimate authorization (see `decisions/ADR-003-transparent-browser-automation.md`).
+`--disable-blink-features=AutomationControlled` is **permitted** (see `decisions/ADR-003-transparent-browser-automation.md`): it suppresses an automation UX banner so Google Sign-In and OAuth flows work for the user's own legitimate session. It does not bypass authentication or authorization.
+
+If a requested behavior requires bypassing a security mechanism or making the browser "stealthy" to evade detection beyond the above, stop and explicitly reject it.
 
 ---
 

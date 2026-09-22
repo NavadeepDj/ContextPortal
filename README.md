@@ -32,13 +32,18 @@
 
 ### 🎬 See It In Action (Demo Video)
 
-<p align="center">
+<!-- <p align="center">
   <a href="https://github.com/NavadeepDj/ContextPortal/blob/main/ContextPortal_README_Demo.mp4">
     <img src="docs/assets/demo_preview.png" alt="ContextPortal Demo Video" width="100%" style="max-width: 820px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
   </a>
   <br />
   <em>▶️ <strong><a href="https://github.com/NavadeepDj/ContextPortal/blob/main/ContextPortal_README_Demo.mp4">Click to watch full demo video (ContextPortal_README_Demo.mp4)</a></strong></em>
-</p>
+</p> -->
+
+
+
+https://github.com/user-attachments/assets/39335366-4e37-4f18-b48a-47015b84ade3
+
 
 > 💡 **What's happening in this demo:**
 > 1. **The Wall:** The AI agent attempts to read an internal, authenticated ticket. Instead of failing or begging for manual screenshots...

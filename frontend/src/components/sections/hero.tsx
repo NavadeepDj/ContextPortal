@@ -17,6 +17,7 @@ import {
   Globe,
   FileCode,
   ShieldCheck,
+  Play,
 } from "lucide-react";
 
 export const HeroSection = () => {
@@ -114,6 +115,12 @@ export const HeroSection = () => {
               <Terminal className="h-4 w-4 text-blue-400" />
               <span>uv tool install contextportal</span>
             </ShimmerButton>
+          </a>
+          <a href="#demo">
+            <Button variant="outline" size="lg" className="gap-2 border-zinc-800 hover:border-zinc-700 bg-zinc-900/60">
+              <Play className="h-4 w-4 text-blue-400 fill-blue-400" />
+              <span>Watch Demo</span>
+            </Button>
           </a>
           <a
             href="https://github.com/NavadeepDj/ContextPortal"

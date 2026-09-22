@@ -49,6 +49,12 @@ export const Navbar = () => {
         {/* Desktop Nav Items */}
         <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-zinc-400">
           <a
+            href="#demo"
+            className="hover:text-white transition-colors duration-150 hover:underline underline-offset-8 text-blue-400 font-medium"
+          >
+            Demo
+          </a>
+          <a
             href="#why"
             className="hover:text-white transition-colors duration-150 hover:underline underline-offset-8"
           >
@@ -108,6 +114,13 @@ export const Navbar = () => {
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden border-b border-zinc-800 bg-zinc-950/95 backdrop-blur-xl px-4 py-5 flex flex-col gap-4">
+          <a
+            href="#demo"
+            onClick={() => setMobileMenuOpen(false)}
+            className="text-sm font-medium text-blue-400 hover:text-blue-300"
+          >
+            Demo
+          </a>
           <a
             href="#why"
             onClick={() => setMobileMenuOpen(false)}

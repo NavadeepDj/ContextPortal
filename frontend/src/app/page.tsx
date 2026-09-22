@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { HeroSection } from "@/components/sections/hero";
+import { DemoVideoSection } from "@/components/sections/demo-video";
 import { ThePainSection } from "@/components/sections/the-pain";
 import { TokenCalculatorSection } from "@/components/sections/token-calculator";
 import { TheSolutionSection } from "@/components/sections/the-solution";
@@ -18,6 +19,7 @@ export default function Home() {
       <Navbar />
       <main className="flex-1 flex flex-col">
         <HeroSection />
+        <DemoVideoSection />
         <ThePainSection />
         <TokenCalculatorSection />
         <TheSolutionSection />

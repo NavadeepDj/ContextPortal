@@ -10,6 +10,7 @@
   </p>
   <p align="center">
     <a href="https://contextportal.vercel.app">🌐 Live Demo</a> · 
+    <a href="#-see-it-in-action-demo-video">🎬 Demo Video</a> · 
     <a href="#-the-math-5-minutes-vs-3-seconds">The Math</a> · 
     <a href="#-quickstart">Quickstart</a> · 
     <a href="#-how-it-works">How It Works</a> · 
@@ -26,6 +27,21 @@
 > 🤖 **Agent:** *"Please take 5 screenshots of the page, crop them, and paste the comments here."*  
 > 👤 **You:** *"No way. Why am I doing homework for an AI?"*  
 > 🔑 **ContextPortal:** *"Say less. Log in once in your browser; your agent retrieves the page forever."*
+
+---
+
+### 🎬 See It In Action (Demo Video)
+
+<p align="center">
+  <video src="ContextPortal_README_Demo.mp4" controls="controls" width="100%" style="max-width: 820px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" playsinline autoplay loop muted>
+    Your browser does not support inline video playback. <a href="ContextPortal_README_Demo.mp4">Click here to watch or download ContextPortal_README_Demo.mp4</a>.
+  </video>
+</p>
+
+> 💡 **What's happening in this demo:**
+> 1. **The Wall:** The AI agent attempts to read an internal, authenticated ticket. Instead of failing or begging for manual screenshots...
+> 2. **The Rescue:** ContextPortal bridges your local authenticated browser session via MCP, rendering the page headless in ~2.5s.
+> 3. **The Guarantee:** Clean, token-efficient ATX Markdown is delivered directly to the model. Zero cookies or credentials ever leave your machine.
 
 ---
 

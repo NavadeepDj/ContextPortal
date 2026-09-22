@@ -4,12 +4,12 @@
     <strong>Give your AI agent access to authenticated web pages — without giving it your credentials.</strong>
   </p>
   <p align="center">
-    <a href="https://contextportal.vercel.app"><img src="https://img.shields.io/badge/Website-contextportal.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Website" /></a>
+    <a href="https://context-portal.vercel.app/"><img src="https://img.shields.io/badge/Website-context--portal.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Website" /></a>
     <a href="https://pypi.org/project/contextportal/"><img src="https://img.shields.io/pypi/v/contextportal?style=for-the-badge&color=blue&logo=pypi&logoColor=white" alt="PyPI Version" /></a>
     <a href="https://github.com/NavadeepDj/ContextPortal/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License" /></a>
   </p>
   <p align="center">
-    <a href="https://contextportal.vercel.app">🌐 Live Demo</a> · 
+    <a href="https://context-portal.vercel.app/">🌐 Live Demo</a> · 
     <a href="#-see-it-in-action-demo-video">🎬 Demo Video</a> · 
     <a href="#-the-math-5-minutes-vs-3-seconds">The Math</a> · 
     <a href="#-quickstart">Quickstart</a> · 
@@ -33,9 +33,11 @@
 ### 🎬 See It In Action (Demo Video)
 
 <p align="center">
-  <video src="ContextPortal_README_Demo.mp4" controls="controls" width="100%" style="max-width: 820px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" playsinline autoplay loop muted>
-    Your browser does not support inline video playback. <a href="ContextPortal_README_Demo.mp4">Click here to watch or download ContextPortal_README_Demo.mp4</a>.
-  </video>
+  <a href="https://github.com/NavadeepDj/ContextPortal/blob/main/ContextPortal_README_Demo.mp4">
+    <img src="docs/assets/demo_preview.png" alt="ContextPortal Demo Video" width="100%" style="max-width: 820px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
+  </a>
+  <br />
+  <em>▶️ <strong><a href="https://github.com/NavadeepDj/ContextPortal/blob/main/ContextPortal_README_Demo.mp4">Click to watch full demo video (ContextPortal_README_Demo.mp4)</a></strong></em>
 </p>
 
 > 💡 **What's happening in this demo:**

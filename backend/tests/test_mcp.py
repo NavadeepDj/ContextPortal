@@ -1,4 +1,5 @@
 import asyncio
+from base64 import b64decode
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -11,6 +12,7 @@ from app.core.retriever import (
     AuthenticationRequiredError,
     ContextResult,
 )
+from app.core.visuals import PageVisual, VisualContext
 from app.mcp.server import mcp
 
 
@@ -57,10 +59,11 @@ async def test_mcp_fetch_context(mock_get_context):
 
                 # 5. List tools and verify our tools are registered
                 tools_response = await session.list_tools()
-                assert len(tools_response.tools) == 2
+                assert len(tools_response.tools) == 3
                 tool_names = [t.name for t in tools_response.tools]
                 assert "fetch_context" in tool_names
                 assert "search_context" in tool_names
+                assert "fetch_visual_context" in tool_names
 
                 # 6. Call the tool and verify it delegates to get_context
                 result = await session.call_tool(
@@ -106,11 +109,44 @@ async def test_mcp_fetch_context(mock_get_context):
                 ):
                     mock_get_context.side_effect = error
                     failure = await session.call_tool(
-                        "fetch_context", {"url": "https://example.com/Private?token=SECRET"}
+                        "fetch_context",
+                        {"url": "https://example.com/Private?token=SECRET"},
                     )
                     assert failure.is_error
                     assert f"{code}:" in failure.content[0].text
                     assert "SECRET" not in failure.content[0].text
+
+                visual = VisualContext(
+                    context=mock_get_context.return_value,
+                    visuals=[
+                        PageVisual(
+                            data=b"original image bytes",
+                            mime_type="image/png",
+                            label="Revenue",
+                        )
+                    ],
+                )
+                with patch(
+                    "app.mcp.server.get_visual_context", return_value=visual
+                ) as fetch_visual:
+                    visual_result = await session.call_tool(
+                        "fetch_visual_context", {"url": "https://example.com/dashboard"}
+                    )
+                    assert not visual_result.is_error
+                    text, label, image = visual_result.content
+                    assert text.type == "text" and "# Mocked Content" in text.text
+                    assert label.type == "text" and "Revenue" in label.text
+                    assert image.type == "image" and image.mime_type == "image/png"
+                    assert b64decode(image.data) == b"original image bytes"
+
+                    for invalid_url in ("", "http://127.0.0.1/", "file:///etc/passwd"):
+                        invalid = await session.call_tool(
+                            "fetch_visual_context", {"url": invalid_url}
+                        )
+                        assert invalid.is_error
+                    fetch_visual.assert_awaited_once_with(
+                        "https://example.com/dashboard"
+                    )
         finally:
             # Clean up the background server task
             server_task.cancel()
@@ -122,9 +158,10 @@ async def test_mcp_fetch_context(mock_get_context):
 
 @pytest.fixture
 def mock_search():
-    with patch("app.mcp.server.search") as mock_s, patch(
-        "app.mcp.server.format_results_as_markdown"
-    ) as mock_f:
+    with (
+        patch("app.mcp.server.search") as mock_s,
+        patch("app.mcp.server.format_results_as_markdown") as mock_f,
+    ):
         mock_f.return_value = (
             "# Search Results: test query\n"
             "### 1. Example Result\n"
@@ -197,4 +234,3 @@ async def test_mcp_search_context(mock_search):
                 await server_task
             except asyncio.CancelledError:
                 pass
-

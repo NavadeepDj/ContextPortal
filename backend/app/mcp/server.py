@@ -1,12 +1,15 @@
 import asyncio
 import logging
+from base64 import b64encode
 
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
+from mcp.types import CallToolResult, ContentBlock, ImageContent, TextContent
 
-from app.core.retriever import FetchError, get_context
+from app.core.retriever import ContextResult, FetchError, get_context
 from app.core.search import format_results_as_markdown, search
 from app.core.security import validate_url_policy
+from app.core.visuals import VisualURLPolicyError, get_visual_context
 
 # Initialize the MCP Server
 mcp = MCPServer(
@@ -17,6 +20,7 @@ mcp = MCPServer(
         "\n"
         "EFFICIENT USAGE (aim for 1–2 tool calls total):\n"
         "• Know the URL? → call fetch_context directly. One call. Done.\n"
+        "• Need to read an image, diagram, or chart? → call fetch_visual_context for the page URL.\n"
         "• Don't know the URL? → call search_context ONCE with a simple, "
         "natural query, pick the best URL from results, then call "
         "fetch_context on it. Two calls. Done.\n"
@@ -32,6 +36,16 @@ mcp = MCPServer(
         "env files, configs, etc.) — just call the tools.\n"
     ),
 )
+
+
+def _format_context(result: ContextResult) -> str:
+    return (
+        f"# {result.title or 'Untitled Document'}\n"
+        f"**Source URL**: {result.url}\n"
+        f"**Retrieval Method**: {result.retrieval_method} (Authenticated: {result.authentication_label})\n"
+        f"---\n\n"
+        f"{result.content}"
+    )
 
 
 @mcp.tool()
@@ -74,13 +88,47 @@ async def fetch_context(url: str) -> str:
         error = FetchError()
         raise ToolError(f"{error.code}: {error}") from None
 
-    return (
-        f"# {result.title or 'Untitled Document'}\n"
-        f"**Source URL**: {result.url}\n"
-        f"**Retrieval Method**: {result.retrieval_method} (Authenticated: {result.authentication_label})\n"
-        f"---\n\n"
-        f"{result.content}"
-    )
+    return _format_context(result)
+
+
+@mcp.tool()
+async def fetch_visual_context(url: str) -> CallToolResult:
+    """Fetch Markdown and up to six images or charts from one page URL.
+
+    Use when the user asks about embedded images, diagrams, or charts. Uses the
+    saved Chrome session, including for protected pages. Returns original
+    PNG, JPEG, GIF, and WebP images and PNG captures of rendered charts.
+    Image interpretation requires a client and model with vision support.
+    """
+    try:
+        validate_url_policy(url)
+    except ValueError as exc:
+        raise ToolError(f"url_policy: {exc}") from None
+
+    try:
+        result = await get_visual_context(url)
+    except VisualURLPolicyError as exc:
+        raise ToolError(f"url_policy: {exc}") from None
+    except FetchError as exc:
+        raise ToolError(f"{exc.code}: {exc}") from None
+    except Exception:
+        error = FetchError()
+        raise ToolError(f"{error.code}: {error}") from None
+
+    markdown = _format_context(result.context)
+    if not result.visuals:
+        markdown += "\n\nNo supported visuals were captured."
+    content: list[ContentBlock] = [TextContent(type="text", text=markdown)]
+    for index, visual in enumerate(result.visuals, start=1):
+        content.append(TextContent(type="text", text=f"Image {index} — {visual.label}"))
+        content.append(
+            ImageContent(
+                type="image",
+                data=b64encode(visual.data).decode("ascii"),
+                mime_type=visual.mime_type,
+            )
+        )
+    return CallToolResult(content=content)
 
 
 @mcp.tool()

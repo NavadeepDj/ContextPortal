@@ -1,12 +1,36 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import PlainTextResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import HttpUrl
 
 from app.config import settings
-from app.core.retriever import get_context
+from app.core.retriever import (
+    AccessDeniedError,
+    AuthenticationRequiredError,
+    FetchError,
+    get_context,
+)
 from app.redis import check_redis_connection
 
 app = FastAPI(title=settings.app_name)
+
+
+@app.exception_handler(RequestValidationError)
+async def handle_validation_error(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    if request.scope.get("endpoint") is fetch_context:
+        detail = [
+            {
+                "loc": error["loc"],
+                "msg": "A valid HTTP(S) URL is required.",
+                "type": error["type"],
+            }
+            for error in exc.errors()
+        ]
+        return JSONResponse(status_code=422, content={"detail": detail})
+    return await request_validation_exception_handler(request, exc)
 
 
 @app.get("/health")
@@ -24,10 +48,17 @@ async def fetch_context(url: HttpUrl) -> str:
     """
     try:
         result = await get_context(str(url))
-        if not result:
-            raise HTTPException(
-                status_code=404, detail="Content could not be retrieved"
-            )
-        return result.content
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except AuthenticationRequiredError as exc:
+        raise HTTPException(
+            status_code=401, detail={"code": exc.code, "message": str(exc)}
+        ) from None
+    except AccessDeniedError as exc:
+        raise HTTPException(
+            status_code=403, detail={"code": exc.code, "message": str(exc)}
+        ) from None
+    except Exception:
+        error = FetchError()
+        raise HTTPException(
+            status_code=500, detail={"code": error.code, "message": str(error)}
+        ) from None
+    return result.content

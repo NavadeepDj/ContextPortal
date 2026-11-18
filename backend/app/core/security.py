@@ -11,12 +11,15 @@ def validate_url_policy(url: str) -> None:
     if not url:
         raise ValueError("URL cannot be empty")
 
-    parsed = urlparse(url)
+    try:
+        parsed = urlparse(url)
+    except ValueError:
+        raise ValueError("Invalid URL") from None
 
     # 1. Scheme Validation
     if parsed.scheme not in ("http", "https"):
         raise ValueError(
-            f"Invalid scheme '{parsed.scheme}'. Only http and https are allowed."
+            "Invalid scheme. Only http and https are allowed."
         )
 
     hostname = parsed.hostname
@@ -41,7 +44,7 @@ def validate_url_policy(url: str) -> None:
             or ip.is_unspecified
         ):
             raise ValueError(
-                f"Access to internal/private IP ({hostname}) is forbidden by security policy"
+                "Access to an internal/private IP is forbidden by security policy"
             )
     except ValueError as e:
         # Not an IP address string.

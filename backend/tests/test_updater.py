@@ -1,8 +1,11 @@
+import json
 import sys
+from importlib.metadata import PackageNotFoundError
 from unittest.mock import MagicMock, patch
 
 import pytest
 
+from app import __version__
 from app.core.updater import (
     detect_install_manager,
     get_current_version,
@@ -12,12 +15,18 @@ from app.core.updater import (
     run_update,
     run_upgrade,
 )
+from app.core.windows_upgrade import start_windows_upgrade
 
 
 def test_get_current_version() -> None:
     ver = get_current_version()
     assert isinstance(ver, str)
     assert len(ver) > 0
+
+
+def test_get_current_version_uses_source_version_without_package_metadata() -> None:
+    with patch("app.version", side_effect=PackageNotFoundError("contextportal")):
+        assert get_current_version() == __version__
 
 
 def test_is_newer_version() -> None:
@@ -161,6 +170,7 @@ def test_run_update_check_only_new_version(
 
 
 @patch("app.core.updater.run_upgrade")
+@patch("app.core.updater.IS_WINDOWS", False)
 @patch("app.core.updater.detect_install_manager")
 @patch("app.core.updater.get_latest_version")
 @patch("app.core.updater.get_current_version")
@@ -179,3 +189,49 @@ def test_run_update_auto_upgrade(
     run_update(check_only=False)
     captured = capsys.readouterr().out
     assert "Successfully updated ContextPortal to v0.3.0!" in captured
+
+
+@patch("app.core.updater.IS_WINDOWS", True)
+@patch("app.core.updater.get_current_version", return_value="0.5.0")
+@patch("app.core.updater.get_latest_version", return_value="0.6.0")
+@patch("app.core.updater.detect_install_manager", return_value="uv")
+@patch("app.core.windows_upgrade.start_windows_upgrade")
+def test_run_update_windows_defers_install_to_helper(
+    start_upgrade, _manager, _latest, _current, capsys
+):
+    run_update()
+
+    start_upgrade.assert_called_once_with(["uv", "tool", "upgrade", "contextportal"])
+    output = capsys.readouterr().out
+    assert "after the launcher exits" in output
+    assert "Successfully updated" not in output
+
+
+@pytest.mark.parametrize("from_launcher", [True, False])
+def test_start_windows_upgrade_passes_exact_launcher_and_wait_pids(
+    tmp_path, monkeypatch, from_launcher
+):
+    launcher = tmp_path / "Program Files" / "contextportal.EXE"
+    args = (
+        [sys.executable, str(launcher), "update"]
+        if from_launcher
+        else [sys.executable, "-m", "app.cli", "update"]
+    )
+    monkeypatch.setattr(sys, "orig_argv", args)
+    monkeypatch.setenv("SystemRoot", str(tmp_path))
+
+    with (
+        patch("app.core.windows_upgrade.os.getpid", return_value=101),
+        patch("app.core.windows_upgrade.os.getppid", return_value=100),
+        patch("app.core.windows_upgrade.subprocess.Popen") as popen,
+    ):
+        start_windows_upgrade(["uv", "tool", "upgrade", "contextportal"])
+
+    popen.assert_called_once()
+    payload = json.loads(popen.call_args.kwargs["env"]["CONTEXTPORTAL_WINDOWS_UPGRADE"])
+    assert payload == {
+        "updater_pid": 101,
+        "parent_pid": 100,
+        "launcher": str(launcher.resolve()) if from_launcher else None,
+        "command": ["uv", "tool", "upgrade", "contextportal"],
+    }

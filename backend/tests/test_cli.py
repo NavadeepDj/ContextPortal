@@ -1,9 +1,21 @@
+import sys
 from unittest.mock import patch
 
 import pytest
 
-from app.cli import run_fetch
+from app import get_current_version
+from app.cli import main, run_fetch
 from app.core.retriever import AccessDeniedError, AuthenticationRequiredError
+
+
+def test_version_flag_exits_without_a_subcommand(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["contextportal", "--version"])
+
+    with pytest.raises(SystemExit) as exc:
+        main()
+
+    assert exc.value.code == 0
+    assert capsys.readouterr().out == f"contextportal {get_current_version()}\n"
 
 
 @pytest.mark.parametrize("error", [AuthenticationRequiredError(), AccessDeniedError()])

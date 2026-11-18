@@ -126,6 +126,16 @@ If you prefer to configure manually:
 
 Works with **Cursor**, **Claude Desktop**, **Antigravity**, **VS Code**, and any MCP client.
 
+## Check your version and update
+
+```bash
+contextportal --version
+contextportal update --check
+contextportal update
+```
+
+On Windows, `update` closes MCP processes launched by the same ContextPortal executable so the installer can replace it. Wait for the completion message, then reconnect ContextPortal in your AI client.
+
 ## Learn More
 
 - 📖 [Full Documentation](https://github.com/NavadeepDj/ContextPortal)

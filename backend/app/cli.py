@@ -2,6 +2,8 @@ import argparse
 import asyncio
 import sys
 
+from app import get_current_version
+
 
 def run_mcp() -> None:
     """Run the ContextPortal MCP server."""
@@ -151,6 +153,9 @@ def run_update(check_only: bool = False) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="ContextPortal — The authenticated fetch layer for AI agents."
+    )
+    parser.add_argument(
+        "--version", action="version", version=f"contextportal {get_current_version()}"
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 

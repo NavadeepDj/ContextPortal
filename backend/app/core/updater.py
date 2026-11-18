@@ -1,4 +1,3 @@
-import importlib.metadata
 import shutil
 import subprocess
 import sys
@@ -6,18 +5,10 @@ import sys
 import httpx
 from packaging import version
 
+from app import get_current_version
+
 PYPI_URL = "https://pypi.org/pypi/contextportal/json"
-
-
-def get_current_version() -> str:
-    """Returns the currently installed ContextPortal version."""
-    try:
-        return importlib.metadata.version("contextportal")
-    except importlib.metadata.PackageNotFoundError:
-        # Fallback to package __version__ if running directly from source tree
-        from app import __version__
-
-        return __version__
+IS_WINDOWS = sys.platform == "win32"
 
 
 def get_latest_version(pypi_url: str = PYPI_URL, timeout: float = 5.0) -> str | None:
@@ -154,6 +145,20 @@ def run_update(check_only: bool = False, pypi_url: str = PYPI_URL) -> None:
     tool = detect_install_manager()
     print(f"Detected installation manager: {tool}")
     print(f"Upgrading ContextPortal to v{latest}...")
+
+    if IS_WINDOWS:
+        from app.core.windows_upgrade import start_windows_upgrade
+
+        try:
+            start_windows_upgrade(get_upgrade_command(tool))
+        except OSError as exc:
+            print(f"\n[!] Could not start the Windows upgrade: {exc}")
+            print("    Disconnect ContextPortal from your agent client before retrying.")
+            raise SystemExit(1) from None
+
+        print("\nThe update will finish in this terminal after the launcher exits.")
+        print("Active ContextPortal MCP connections may disconnect during the update.")
+        return
 
     success, output = run_upgrade(tool)
     if success:

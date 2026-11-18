@@ -1,8 +1,10 @@
 import asyncio
+import logging
 
 from mcp.server.mcpserver import MCPServer
+from mcp.server.mcpserver.exceptions import ToolError
 
-from app.core.retriever import get_context
+from app.core.retriever import FetchError, get_context
 from app.core.search import format_results_as_markdown, search
 from app.core.security import validate_url_policy
 
@@ -46,6 +48,10 @@ async def fetch_context(url: str) -> str:
 
     The URL may redirect (e.g. a base domain to a dashboard). The content
     from the final destination is returned.
+
+    If sign-in is needed, the tool reports authentication_required. If the
+    site refuses access, it reports access_denied. Browser results can show
+    Unverified when the page loaded without an observable sign-in challenge.
     """
     if not url:
         raise ValueError("url is required")
@@ -62,19 +68,19 @@ async def fetch_context(url: str) -> str:
     # Delegate entirely to the retrieval orchestrator
     try:
         result = await get_context(url)
-        if not result:
-            return "Error: Could not retrieve content from the URL. The page might be empty, heavily obfuscated, or the auth session may have expired."
+    except FetchError as exc:
+        raise ToolError(f"{exc.code}: {exc}") from None
+    except Exception:
+        error = FetchError()
+        raise ToolError(f"{error.code}: {error}") from None
 
-        formatted_response = (
-            f"# {result.title or 'Untitled Document'}\n"
-            f"**Source URL**: {result.url}\n"
-            f"**Retrieval Method**: {result.retrieval_method} (Authenticated: {result.authenticated})\n"
-            f"---\n\n"
-            f"{result.content}"
-        )
-        return formatted_response
-    except Exception as e:
-        return f"Error retrieving context: {str(e)}"
+    return (
+        f"# {result.title or 'Untitled Document'}\n"
+        f"**Source URL**: {result.url}\n"
+        f"**Retrieval Method**: {result.retrieval_method} (Authenticated: {result.authentication_label})\n"
+        f"---\n\n"
+        f"{result.content}"
+    )
 
 
 @mcp.tool()
@@ -120,6 +126,8 @@ async def search_context(
 
 def main() -> None:
     """Run the MCP server over STDIO transport."""
+    # HTTPX INFO logs include complete request URLs.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
     # MCPServer provides a synchronous run method that handles asyncio internally
     mcp.run()
 

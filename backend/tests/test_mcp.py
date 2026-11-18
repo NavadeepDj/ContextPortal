@@ -6,7 +6,11 @@ from mcp.client.session import ClientSession
 from mcp.server.models import InitializationOptions
 from mcp.shared.memory import create_client_server_memory_streams
 
-from app.core.retriever import ContextResult
+from app.core.retriever import (
+    AccessDeniedError,
+    AuthenticationRequiredError,
+    ContextResult,
+)
 from app.mcp.server import mcp
 
 
@@ -89,6 +93,24 @@ async def test_mcp_fetch_context(mock_get_context):
                     "fetch_context", {"url": "file:///etc/passwd"}
                 )
                 assert "Error: Invalid scheme" in result_file.content[0].text
+
+                malformed = await session.call_tool(
+                    "fetch_context", {"url": "https://[user:SECRET]@example.com/"}
+                )
+                assert malformed.content[0].text == "Error: Invalid URL"
+
+                for error, code in (
+                    (AuthenticationRequiredError(), "authentication_required"),
+                    (AccessDeniedError(), "access_denied"),
+                    (RuntimeError("Failed to load ?token=SECRET"), "retrieval_failed"),
+                ):
+                    mock_get_context.side_effect = error
+                    failure = await session.call_tool(
+                        "fetch_context", {"url": "https://example.com/Private?token=SECRET"}
+                    )
+                    assert failure.is_error
+                    assert f"{code}:" in failure.content[0].text
+                    assert "SECRET" not in failure.content[0].text
         finally:
             # Clean up the background server task
             server_task.cancel()

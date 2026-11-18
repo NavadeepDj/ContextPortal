@@ -1,13 +1,38 @@
 import asyncio
-import time
+import logging
+import sys
+from urllib.parse import urlsplit
 
 import httpx
 import markdownify
 from bs4 import BeautifulSoup
 from playwright.sync_api import Page, sync_playwright
+from playwright.sync_api import Response as BrowserResponse
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from pydantic import BaseModel
 from readability import Document
+
+logger = logging.getLogger(__name__)
+
+
+class FetchError(RuntimeError):
+    code = "retrieval_failed"
+    message = "Could not retrieve the requested page."
+
+    def __init__(self) -> None:
+        super().__init__(self.message)
+
+
+class AuthenticationRequiredError(FetchError):
+    code = "authentication_required"
+    message = "Sign-in is required or the session expired. Run `contextportal login` and retry."
+
+
+class AccessDeniedError(FetchError):
+    code = "access_denied"
+    message = (
+        "The site denied access. Check that the signed-in account can open the page."
+    )
 
 
 class ContextResult(BaseModel):
@@ -16,7 +41,12 @@ class ContextResult(BaseModel):
     content: str
     content_type: str = "text/markdown"
     retrieval_method: str
-    authenticated: bool
+    # None means the browser rendered content without evidence of a recovered session.
+    authenticated: bool | None
+
+    @property
+    def authentication_label(self) -> str:
+        return "Unverified" if self.authenticated is None else str(self.authenticated)
 
 
 # ── constants ─────────────────────────────────────────────────────────────────
@@ -30,6 +60,9 @@ USER_AGENT = "ContextPortal/0.1.0 (+https://github.com/NavadeepDj/ContextPortal)
 MAX_HTTP_RETRIES = 2
 RETRY_ON_STATUS = {429, 503}
 MIN_CONTENT_CHARS = 100
+LOGIN_PATH_SEGMENTS = {"login", "signin", "sign-in", "oauth", "oauth2", "sso", "saml"}
+LOGIN_POLL_INTERVAL_MS = 2_000
+LOGIN_POLL_ATTEMPTS = 150
 
 # Patterns in raw HTML that indicate a JavaScript-only SPA shell with no real content.
 # Checked before extraction to catch shells whose error/loading text passes the char threshold.
@@ -45,6 +78,7 @@ SPA_MARKERS = [
 
 
 # ── shared extraction helper ───────────────────────────────────────────────────
+
 
 def _extract_content(html: str) -> tuple[str, str]:
     """Single source of truth: HTML → (markdown, title)."""
@@ -66,8 +100,16 @@ async def extract_markdown(html: str) -> tuple[str, str]:
 
 # ── HTTP fetch ────────────────────────────────────────────────────────────────
 
+
 async def fetch_public(url: str) -> ContextResult | None:
     """Attempts to fetch the URL normally. Returns ContextResult if successful and not blocked, else None."""
+    try:
+        return await _fetch_public(url)
+    except AuthenticationRequiredError:
+        return None
+
+
+async def _fetch_public(url: str) -> ContextResult | None:
     headers = {"User-Agent": USER_AGENT}
     try:
         async with httpx.AsyncClient(
@@ -77,33 +119,33 @@ async def fetch_public(url: str) -> ContextResult | None:
                 try:
                     response = await client.get(url)
                 except httpx.TimeoutException:
-                    print("Request timed out — falling back to browser immediately.")
+                    logger.info("Public fetch timed out. Trying the browser.")
                     return None
-                except Exception as e:
-                    print(f"Public fetch failed: {e}")
-                    return None
-
-                if response.status_code in (401, 403):
-                    print("Public fetch hit 401/403.")
+                if response.status_code == 401:
+                    raise AuthenticationRequiredError()
+                if response.status_code == 403:
+                    logger.info("Public fetch hit HTTP 403.")
                     return None
 
                 if response.status_code in RETRY_ON_STATUS:
                     if attempt < MAX_HTTP_RETRIES - 1:
-                        print(
-                            f"Got {response.status_code}, retrying in {2 ** attempt}s "
-                            f"(attempt {attempt + 1}/{MAX_HTTP_RETRIES})..."
+                        logger.info(
+                            "HTTP %s. Retrying public fetch in %ss.",
+                            response.status_code,
+                            2**attempt,
                         )
                         await asyncio.sleep(2**attempt)
                         continue
-                    print(f"Got {response.status_code} after {MAX_HTTP_RETRIES} attempts.")
+                    logger.info(
+                        "Public fetch hit HTTP %s after retries.", response.status_code
+                    )
                     return None
 
                 response.raise_for_status()
 
-                final_url = str(response.url).lower()
-                if "login" in final_url or "signin" in final_url or "auth" in final_url:
-                    print(f"Public fetch redirected to auth page: {final_url}")
-                    return None
+                final_url = str(response.url)
+                if _is_login_url(final_url, url):
+                    raise AuthenticationRequiredError()
 
                 content_type = response.headers.get("content-type", "")
 
@@ -132,16 +174,20 @@ async def fetch_public(url: str) -> ContextResult | None:
 
                 # Detect SPA shells before running the full extraction pipeline
                 raw_lower = response.text.lower()
+                if "password" in raw_lower and BeautifulSoup(
+                    response.text, "lxml"
+                ).select_one(
+                    'form input[type="password" i]:not([hidden], [hidden] *, template *)'
+                ):
+                    raise AuthenticationRequiredError()
                 if any(marker in raw_lower for marker in SPA_MARKERS):
-                    print("SPA shell markers detected in HTML.")
+                    logger.info("SPA shell markers detected in public fetch.")
                     return None
 
                 md, title = await extract_markdown(response.text)
 
                 if len(md.strip()) < MIN_CONTENT_CHARS:
-                    print(
-                        "Public fetch returned virtually empty content (likely an SPA shell)."
-                    )
+                    logger.info("Public fetch returned too little content.")
                     return None
 
                 return ContextResult(
@@ -153,8 +199,10 @@ async def fetch_public(url: str) -> ContextResult | None:
                     authenticated=False,
                 )
 
-    except Exception as e:
-        print(f"Public fetch failed: {e}")
+    except AuthenticationRequiredError:
+        raise
+    except Exception:
+        logger.info("Public fetch failed.")
         return None
 
     return None
@@ -162,18 +210,36 @@ async def fetch_public(url: str) -> ContextResult | None:
 
 # ── browser auth helpers ──────────────────────────────────────────────────────
 
-def _is_on_target_content(page: Page, target_url: str) -> bool:
-    """Check if the page has navigated to (or near) the target URL's domain/path."""
-    from urllib.parse import urlparse
 
-    current = urlparse(page.url)
-    target = urlparse(target_url)
-    # Consider it "on target" if the domain matches the target domain
-    # and the URL no longer looks like a login/auth/access page.
-    current_url_lower = page.url.lower()
-    auth_indicators = ["login", "signin", "sign-in", "auth", "/access"]
-    is_auth_page = any(indicator in current_url_lower for indicator in auth_indicators)
-    return current.netloc == target.netloc and not is_auth_page
+def _is_login_url(url: str, target_url: str) -> bool:
+    segments = urlsplit(url).path.lower().strip("/").split("/")
+    if segments[-1] == "access":
+        # Some SSO providers use an access gateway on a different origin.
+        return not _same_origin(url, target_url)
+    return segments[-1] == "auth" or bool(LOGIN_PATH_SEGMENTS.intersection(segments))
+
+
+def _has_login_challenge(page: Page, target_url: str) -> bool:
+    return _is_login_url(page.url, target_url) or bool(
+        page.locator('input[type="password" i]:visible').count()
+    )
+
+
+def _same_origin(first_url: str, second_url: str) -> bool:
+    first = httpx.URL(first_url)
+    second = httpx.URL(second_url)
+    return (first.scheme, first.netloc) == (second.scheme, second.netloc)
+
+
+def _check_browser_response(response: BrowserResponse | None) -> None:
+    if response is None:
+        return
+    if response.status == 401:
+        raise AuthenticationRequiredError()
+    if response.status == 403:
+        raise AccessDeniedError()
+    if response.status >= 400:
+        raise FetchError()
 
 
 def _fetch_authenticated_sync(url: str) -> ContextResult:
@@ -199,93 +265,72 @@ def _fetch_authenticated_sync(url: str) -> ContextResult:
             viewport={"width": 1280, "height": 800},
         )
 
-        page = browser_context.new_page()
-
         try:
-            print(f"Navigating to {url}...")
-            page.goto(url, wait_until="domcontentloaded")
+            page = browser_context.new_page()
+            last_response: BrowserResponse | None = None
 
-            try:
-                page.wait_for_load_state("networkidle", timeout=5000)
-            except PlaywrightTimeoutError:
-                pass
+            def track_navigation(response: BrowserResponse) -> None:
+                nonlocal last_response
+                if (
+                    response.request.is_navigation_request()
+                    and response.frame == page.main_frame
+                ):
+                    last_response = response
 
-            # Detect if we landed on a login/auth page
-            current_url_lower = page.url.lower()
-            auth_indicators = ["login", "signin", "sign-in", "auth", "/access"]
-            has_password_field = page.evaluate(
-                "() => !!document.querySelector('input[type=\"password\"]')"
-            )
-            is_login_page = has_password_field or any(
-                indicator in current_url_lower for indicator in auth_indicators
-            )
-
-            if is_login_page:
-                print(
-                    "Authentication required. Please log in using the opened browser window."
-                )
-                print(
-                    "This supports OAuth popups (Google, SSO, etc.) — complete login in any window that opens."
-                )
-                print("Waiting for you to complete login (up to 5 minutes)...")
-
-                # Poll-based approach: check every 2 seconds if the main page
-                # has navigated back to the target domain after auth completion.
-                # This works with OAuth popups, SSO redirects, and multi-step flows
-                # where the auth happens in a separate window.
-                login_timeout_seconds = 300
-                poll_interval_seconds = 2
-                elapsed = 0
-                login_succeeded = False
-
-                while elapsed < login_timeout_seconds:
-                    time.sleep(poll_interval_seconds)
-                    elapsed += poll_interval_seconds
-
-                    if _is_on_target_content(page, url):
-                        print("Login detected! Page has returned to target domain.")
-                        login_succeeded = True
-                        break
-
-                if not login_succeeded:
-                    # One final attempt: navigate back to the target URL.
-                    # The browser context may now have valid session cookies
-                    # even if the page itself didn't redirect back.
-                    print(
-                        "Login wait period ended. Attempting to navigate to the target resource..."
-                    )
-                    page.goto(url, wait_until="domcontentloaded")
-                    try:
-                        page.wait_for_load_state("networkidle", timeout=10000)
-                    except PlaywrightTimeoutError:
-                        pass
-
-                    if not _is_on_target_content(page, url):
-                        raise RuntimeError(
-                            "Authentication timed out. Could not access the target resource. "
-                            "Please try again and complete the login within 5 minutes."
-                        )
-
-                # Wait for the page to fully settle after auth redirect
+            def wait_for_page(timeout: int) -> None:
                 try:
-                    page.wait_for_load_state("networkidle", timeout=10000)
+                    page.wait_for_load_state("networkidle", timeout=timeout)
                 except PlaywrightTimeoutError:
                     pass
 
-                # If we're on target domain but not the exact target URL, navigate there
-                if url not in page.url:
-                    print(f"Redirecting to target resource: {url}")
-                    page.goto(url, wait_until="domcontentloaded")
-                    try:
-                        page.wait_for_load_state("networkidle", timeout=10000)
-                    except PlaywrightTimeoutError:
-                        pass
+            def navigate(timeout: int) -> None:
+                nonlocal last_response
+                last_response = None
+                response = page.goto(url, wait_until="domcontentloaded")
+                if last_response is None:
+                    last_response = response
+                wait_for_page(timeout)
 
-            print("Extracting content...")
+            page.on("response", track_navigation)
+            navigate(timeout=5000)
+            challenged = _has_login_challenge(page, url)
+            if not challenged or (
+                last_response is not None and last_response.status != 401
+            ):
+                _check_browser_response(last_response)
+
+            if challenged:
+                print(
+                    "Sign-in required. Complete login in the browser window within 5 minutes.",
+                    file=sys.stderr,
+                )
+                for _ in range(LOGIN_POLL_ATTEMPTS):
+                    page.wait_for_timeout(LOGIN_POLL_INTERVAL_MS)
+                    if last_response is not None and last_response.status == 403:
+                        raise AccessDeniedError()
+                    if _same_origin(page.url, url) and not _has_login_challenge(
+                        page, url
+                    ):
+                        break
+                if (
+                    page.url != url
+                    or _has_login_challenge(page, url)
+                    or (last_response is not None and last_response.status == 401)
+                ):
+                    # A popup can set the session without returning the main page to the target.
+                    navigate(timeout=10000)
+                else:
+                    wait_for_page(timeout=10000)
+                _check_browser_response(last_response)
+                if not _same_origin(page.url, url) or _has_login_challenge(page, url):
+                    raise AuthenticationRequiredError()
+
             html_content = page.content()
             final_url = page.url
 
             md_content, title = _extract_content(html_content)
+            if not md_content:
+                raise FetchError()
 
             return ContextResult(
                 url=final_url,
@@ -293,7 +338,7 @@ def _fetch_authenticated_sync(url: str) -> ContextResult:
                 content=md_content,
                 content_type="text/markdown",
                 retrieval_method="browser",
-                authenticated=True,
+                authenticated=True if challenged else None,
             )
 
         finally:
@@ -307,14 +352,21 @@ async def fetch_authenticated(url: str) -> ContextResult:
 
 async def get_context(url: str) -> ContextResult:
     """Main entrypoint: tries public fetch, falls back to authenticated fetch."""
-    print(f"Attempting normal public fetch for: {url}")
-    public_result = await fetch_public(url)
+    public_challenge = False
+    try:
+        public_result = await _fetch_public(url)
+        if public_result is not None:
+            return public_result
+    except AuthenticationRequiredError:
+        public_challenge = True
 
-    if public_result:
-        print("Successfully retrieved publicly.")
-        return public_result
-
-    print(
-        "Public fetch failed or requires authentication. Falling back to authorized session..."
-    )
-    return await fetch_authenticated(url)
+    logger.info("Trying the saved browser session.")
+    try:
+        result = await fetch_authenticated(url)
+        if public_challenge and _same_origin(result.url, url):
+            result.authenticated = True
+        return result
+    except FetchError:
+        raise
+    except Exception:
+        raise FetchError() from None

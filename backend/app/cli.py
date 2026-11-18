@@ -66,25 +66,23 @@ def run_login(start_url: str | None = None) -> None:
 
 def run_fetch(url: str) -> None:
     """Fetch a URL directly from the CLI (useful for testing without an agent)."""
-    from app.core.retriever import get_context
+    from app.core.retriever import FetchError, get_context
 
-    print(f"Fetching context for: {url}\n")
+    print("Fetching context...", file=sys.stderr)
 
-    async def _do_fetch() -> None:
-        result = await get_context(url)
-        if not result:
-            print("Error: Could not retrieve content.")
-            sys.exit(1)
+    try:
+        result = asyncio.run(get_context(url))
+    except FetchError as exc:
+        print(f"{exc.code}: {exc}", file=sys.stderr)
+        sys.exit(1)
 
-        print("=" * 80)
-        print(f"Title: {result.title}")
-        print(
-            f"Retrieval Method: {result.retrieval_method} (Authenticated: {result.authenticated})"
-        )
-        print("=" * 80)
-        print(result.content)
-
-    asyncio.run(_do_fetch())
+    print("=" * 80)
+    print(f"Title: {result.title}")
+    print(
+        f"Retrieval Method: {result.retrieval_method} (Authenticated: {result.authentication_label})"
+    )
+    print("=" * 80)
+    print(result.content)
 
 
 def run_search(query: str, engine: str = "google", num_results: int = 5) -> None:

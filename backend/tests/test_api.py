@@ -3,7 +3,11 @@ from unittest.mock import patch
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from app.core.retriever import ContextResult
+from app.core.retriever import (
+    AccessDeniedError,
+    AuthenticationRequiredError,
+    ContextResult,
+)
 from app.main import app
 
 
@@ -33,15 +37,18 @@ async def test_fetch_context_endpoint_invalid_url():
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
-        response = await ac.get("/c?url=not-a-valid-url")
+        response = await ac.get("/c", params={"url": "ftp://example.com/?token=SECRET"})
 
     assert response.status_code == 422
+    assert "SECRET" not in response.text
 
 
 @pytest.mark.asyncio
 @patch("app.main.get_context")
 async def test_fetch_context_endpoint_error(mock_get_context):
-    mock_get_context.side_effect = Exception("Retrieval failed")
+    mock_get_context.side_effect = Exception(
+        "Could not fetch https://example.com/?token=SECRET"
+    )
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
@@ -49,4 +56,25 @@ async def test_fetch_context_endpoint_error(mock_get_context):
         response = await ac.get("/c?url=https://example.com/fails")
 
     assert response.status_code == 500
-    assert response.json()["detail"] == "Retrieval failed"
+    assert response.json()["detail"]["code"] == "retrieval_failed"
+    assert "SECRET" not in response.text
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("error", "status"),
+    [(AuthenticationRequiredError(), 401), (AccessDeniedError(), 403)],
+)
+@patch("app.main.get_context")
+async def test_fetch_context_endpoint_auth_failure(mock_get_context, error, status):
+    mock_get_context.side_effect = error
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
+        response = await ac.get(
+            "/c", params={"url": "https://example.com/Private?token=SECRET"}
+        )
+
+    assert response.status_code == status
+    assert response.json()["detail"]["code"] == error.code
+    assert "SECRET" not in response.text

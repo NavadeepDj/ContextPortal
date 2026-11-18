@@ -1,6 +1,9 @@
 import asyncio
 import logging
 import sys
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
+from typing import Literal
 from urllib.parse import urlsplit
 
 import httpx
@@ -242,7 +245,13 @@ def _check_browser_response(response: BrowserResponse | None) -> None:
         raise FetchError()
 
 
-def _fetch_authenticated_sync(url: str) -> ContextResult:
+@contextmanager
+def open_browser_page(
+    url: str,
+    *,
+    prepare: Callable[[Page], None] | None = None,
+    service_workers: Literal["allow", "block"] = "allow",
+) -> Iterator[tuple[Page, bool]]:
     """
     Sync function that runs Playwright in a thread.
     Uses sync_api to avoid the Windows asyncio subprocess bug.
@@ -263,10 +272,13 @@ def _fetch_authenticated_sync(url: str) -> ContextResult:
             channel="chrome",
             args=["--disable-blink-features=AutomationControlled"],
             viewport={"width": 1280, "height": 800},
+            service_workers=service_workers,
         )
 
         try:
             page = browser_context.new_page()
+            if prepare is not None:
+                prepare(page)
             last_response: BrowserResponse | None = None
 
             def track_navigation(response: BrowserResponse) -> None:
@@ -325,24 +337,30 @@ def _fetch_authenticated_sync(url: str) -> ContextResult:
                 if not _same_origin(page.url, url) or _has_login_challenge(page, url):
                     raise AuthenticationRequiredError()
 
-            html_content = page.content()
-            final_url = page.url
-
-            md_content, title = _extract_content(html_content)
-            if not md_content:
-                raise FetchError()
-
-            return ContextResult(
-                url=final_url,
-                title=title,
-                content=md_content,
-                content_type="text/markdown",
-                retrieval_method="browser",
-                authenticated=True if challenged else None,
-            )
+            yield page, challenged
 
         finally:
             browser_context.close()
+
+
+def extract_browser_context(page: Page, challenged: bool) -> ContextResult:
+    """Extract Markdown and source metadata from the current browser document."""
+    md_content, title = _extract_content(page.content())
+    return ContextResult(
+        url=page.url,
+        title=title,
+        content=md_content,
+        retrieval_method="browser",
+        authenticated=True if challenged else None,
+    )
+
+
+def _fetch_authenticated_sync(url: str) -> ContextResult:
+    with open_browser_page(url) as (page, challenged):
+        result = extract_browser_context(page, challenged)
+        if not result.content:
+            raise FetchError()
+        return result
 
 
 async def fetch_authenticated(url: str) -> ContextResult:

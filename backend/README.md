@@ -126,6 +126,10 @@ If you prefer to configure manually:
 
 Works with **Cursor**, **Claude Desktop**, **Antigravity**, **VS Code**, and any MCP client.
 
+## Read images and charts
+
+Ask your agent to explain an image or chart on a page URL. `fetch_visual_context` uses your saved Chrome session and returns the page text with up to six visuals. It keeps the original PNG, JPEG, GIF, or WebP files and captures individual charts drawn in the browser. To interpret the images, your MCP client and model need vision support.
+
 ## Check your version and update
 
 ```bash
